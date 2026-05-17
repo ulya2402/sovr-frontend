@@ -8,6 +8,7 @@ export function Card({ card, theme, idx }: any) {
   const [saved, setSaved] = useState(false);
   const [hov, setHov] = useState(false);
   const [share, setShare] = useState(false);
+  
   return (
     <>
       {share && <ShareModal card={card} theme={theme} onClose={() => setShare(false)} />}
@@ -22,7 +23,7 @@ export function Card({ card, theme, idx }: any) {
         <div style={{ marginBottom: "0.85rem" }}><SourceChip source={card.source} theme={theme} variant="normal" /></div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "0.9rem", borderTop: `1px solid ${c.border}` }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 26, height: 26, borderRadius: "50%", background: tag.bg, border: `1px solid ${tag.bar}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.6rem", color: tag.color }}><i className="ri-user-3-line" /></div>
+            <div style={{ width: 26, height: 26, borderRadius: "50%", background: tag.bg, border: `1px solid ${tag.bar}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.6rem", color: tag.color, flexShrink: 0 }}><i className="ri-user-3-line" /></div>
             <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.57rem", color: c.textMuted }}>{card.author}</span>
           </div>
           <div style={{ display: "flex", gap: 6 }}>
@@ -41,12 +42,13 @@ export function EditorCard({ card, theme, idx }: any) {
   const [saved, setSaved] = useState(false);
   const [hov, setHov] = useState(false);
   const [share, setShare] = useState(false);
+  
   return (
     <>
       {share && <ShareModal card={card} theme={theme} onClose={() => setShare(false)} />}
       <article onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)} style={{ position: "relative", overflow: "hidden", background: theme === "dark" ? (hov ? "#1c1814" : "#161310") : (hov ? "#fdf5e0" : "#fef9ec"), border: `1px solid ${hov ? c.amber + "55" : c.edBorder}`, borderRadius: 22, padding: 0, transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)", transform: hov ? "translateY(-3px)" : "translateY(0)", boxShadow: hov ? (theme === "dark" ? "0 28px 70px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,168,83,0.1)" : "0 16px 50px rgba(180,137,30,0.14)") : (theme === "dark" ? "0 4px 20px rgba(212,168,83,0.04)" : "0 4px 16px rgba(184,137,30,0.07)"), animation: `cardIn 0.55s cubic-bezier(0.4,0,0.2,1) ${idx * 0.1}s both` }}>
         <div style={{ height: 3, background: `linear-gradient(90deg,transparent,${c.amber},transparent)` }} />
-        <div style={{ position: "absolute", top: 18, right: 18, width: 32, height: 32, borderRadius: "50%", background: c.amberDim, border: `1px solid ${c.amber}40`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Fraunces',serif", fontSize: "0.85rem", color: c.amber, fontStyle: "italic", zIndex: 1 }}>{idx + 1}</div>
+        <div style={{ position: "absolute", top: 18, right: 18, width: 32, height: 32, borderRadius: "50%", background: c.amberDim, border: `1px solid ${c.amber}40`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Fraunces',serif", fontSize: "0.85rem", color: c.amber, fontStyle: "italic", zIndex: 1, flexShrink: 0 }}>{idx + 1}</div>
         <div style={{ padding: "1.5rem 1.75rem 1.5rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "1rem" }}>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontFamily: "'Space Mono',monospace", fontSize: "0.57rem", letterSpacing: "0.08em", textTransform: "uppercase", background: tag.bg, color: tag.color, padding: "0.22rem 0.65rem", borderRadius: 6 }}><i className={card.icon} style={{ fontSize: "0.65rem" }} />{card.tag}</span>
@@ -62,7 +64,7 @@ export function EditorCard({ card, theme, idx }: any) {
           <div style={{ marginBottom: "1.1rem" }}><SourceChip source={card.source} theme={theme} variant="editor" /></div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "1rem", borderTop: `1px solid ${c.amber}22` }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 28, height: 28, borderRadius: "50%", background: c.amberDim, border: `1px solid ${c.amber}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.62rem", color: c.amber }}><i className="ri-quill-pen-line" /></div>
+              <div style={{ width: 28, height: 28, borderRadius: "50%", background: c.amberDim, border: `1px solid ${c.amber}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.62rem", color: c.amber, flexShrink: 0 }}><i className="ri-quill-pen-line" /></div>
               <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.57rem", color: c.textMuted }}>{card.author}</span>
               <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.5rem", color: `${c.amber}70` }}>· Editor Pick</span>
             </div>
