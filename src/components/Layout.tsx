@@ -57,13 +57,88 @@ export function Hero({ theme }: any) {
 
 export function Ticker({ theme }: any) {
   const c = T[theme];
-  const items = [...TICKERS, ...TICKERS];
+  const [coins, setCoins] = useState<any[]>([]);
+  const [status, setStatus] = useState("Menghubungkan ke API Kripto...");
+
+  useEffect(() => {
+    fetch("https://backend-sovr.botgampang123.workers.dev/api/ticker")
+      .then(res => {
+        if (!res.ok) throw new Error("Jalur ditolak");
+        return res.json();
+      })
+      .then(data => {
+        if (data && data.length > 0) {
+          setCoins(data);
+        } else {
+          setStatus("Data dari API kosong.");
+        }
+      })
+      .catch(err => {
+        console.error("Gagal memuat ticker", err);
+        setStatus(`Gagal: ${err.message}`);
+      });
+  }, []);
+
+  // Gaya container luar dari kode lamamu (ditambah justifyContent untuk saat loading)
+  const containerStyle: any = {
+    position: "fixed",
+    top: 56,
+    left: 0,
+    right: 0,
+    zIndex: 199,
+    height: 30,
+    overflow: "hidden",
+    background: theme === "dark" ? "rgba(10,10,12,0.92)" : "rgba(250,246,240,0.95)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+    borderBottom: `1px solid ${c.border}`,
+    display: "flex",
+    alignItems: "center"
+  };
+
+  // Tampilan saat API masih loading
+  if (coins.length === 0) {
+    return (
+      <div style={{ ...containerStyle, justifyContent: "center" }}>
+        <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.62rem", color: c.amber, letterSpacing: "0.03em" }}>
+          {status}
+        </span>
+      </div>
+    );
+  }
+
+  // Gandakan array beberapa kali agar scroll mulus (infinite loop)
+  const items = [...coins, ...coins, ...coins, ...coins];
+
   return (
-    <div style={{ position: "fixed", top: 56, left: 0, right: 0, zIndex: 199, height: 30, overflow: "hidden", background: theme === "dark" ? "rgba(10,10,12,0.92)" : "rgba(250,246,240,0.95)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: `1px solid ${c.border}`, display: "flex", alignItems: "center" }}>
-      <div style={{ display: "flex", animation: "ticker 40s linear infinite", whiteSpace: "nowrap" }}>
-        {items.map((t, i) => (
+    <div style={containerStyle}>
+      <style>
+        {`
+          @keyframes ticker {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .ticker-track {
+            display: flex;
+            animation: ticker 40s linear infinite;
+            white-space: nowrap;
+          }
+          .ticker-track:hover {
+            animation-play-state: paused;
+          }
+        `}
+      </style>
+      
+      <div className="ticker-track">
+        {items.map((coin, i) => (
+          // Gaya dan struktur elemen dari kode lamamu
           <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "0 1.5rem", borderRight: `1px solid ${c.border}`, fontFamily: "'Space Mono',monospace", fontSize: "0.62rem", letterSpacing: "0.03em" }}>
-            <span style={{ color: c.textMuted }}>{t.n}</span><span style={{ color: c.text }}>{t.p}</span><span style={{ color: t.u ? c.green : c.red }}>{t.c}</span>
+            <span style={{ color: c.textMuted }}>{coin.pair}</span>
+            <span style={{ color: c.text }}>${coin.price}</span>
+            <span style={{ color: coin.isUp ? c.green : c.red, display: "flex", alignItems: "center" }}>
+              <i className={coin.isUp ? "ri-arrow-up-s-fill" : "ri-arrow-down-s-fill"} style={{ fontSize: "0.7rem", marginRight: 2 }} />
+              {coin.change}
+            </span>
           </div>
         ))}
       </div>
