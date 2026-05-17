@@ -3,32 +3,65 @@ import { T } from "../theme";
 
 export function SourceSheet({ source, theme, onClose }: any) {
   const c = T[theme];
+  const [vis, setVis] = useState(false);
+  
+  useEffect(() => { 
+    const id = requestAnimationFrame(() => setVis(true)); 
+    return () => cancelAnimationFrame(id); 
+  }, []);
+
+  const close = () => { 
+    setVis(false); 
+    setTimeout(onClose, 320); 
+  };
 
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 1000, background: theme === "dark" ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: 340, maxWidth: "90vw", background: c.surface, borderRadius: 20, border: `1px solid ${c.borderHover}`, padding: "1.75rem", boxShadow: theme === "dark" ? "0 40px 100px rgba(0,0,0,0.8)" : "0 20px 60px rgba(0,0,0,0.15)", animation: "cardIn 0.3s cubic-bezier(0.4,0,0.2,1) both" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
-          <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.6rem", letterSpacing: "0.2em", color: c.amber, textTransform: "uppercase" }}>Sumber Berita</span>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: c.textMuted, cursor: "pointer", fontSize: "1.2rem", lineHeight: 1 }}><i className="ri-close-line" /></button>
-        </div>
+    <div onClick={close} style={{ position: "fixed", inset: 0, zIndex: 1000, background: vis ? (theme === "dark" ? "rgba(0,0,0,0.65)" : "rgba(0,0,0,0.25)") : "rgba(0,0,0,0)", transition: "background 0.3s", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+      {/* --- PERBAIKAN BUG OVERFLOW ---
+        Menambahkan maxHeight dan overflowY agar konten bisa di-scroll di HP pendek.
+        Menambahkan display flex agar padding bawah tetap rapi saat di-scroll.
+      */}
+      <div 
+        onClick={e => e.stopPropagation()} 
+        style={{ 
+          width: "100%", 
+          maxWidth: 520, 
+          maxHeight: "90vh", 
+          overflowY: "auto", 
+          background: c.surface, 
+          borderRadius: "22px 22px 0 0", 
+          border: `1px solid ${c.borderHover}`, 
+          borderBottom: "none", 
+          display: "flex", 
+          flexDirection: "column", 
+          transform: vis ? "translateY(0)" : "translateY(100%)", 
+          transition: "transform 0.32s cubic-bezier(0.4,0,0.2,1)", 
+          boxShadow: theme === "dark" ? "0 -32px 80px rgba(0,0,0,0.7)" : "0 -16px 48px rgba(0,0,0,0.12)" 
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "center", padding: "1rem 0 1.25rem", flexShrink: 0 }}><div style={{ width: 36, height: 4, borderRadius: 2, background: c.border }} /></div>
         
-        <div style={{ background: c.surface2, border: `1px solid ${c.border}`, borderRadius: 16, padding: "1.25rem", marginBottom: "1.25rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: "0.85rem" }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: c.amberDim, border: `1px solid ${c.amber}30`, display: "flex", alignItems: "center", justifyContent: "center", color: c.amber, fontSize: "1.2rem", flexShrink: 0 }}>
-              <i className={source.logo} />
+        {/* Konten Utama */}
+        <div style={{ padding: "0 1.75rem 2.5rem" }}>
+          <div style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.52rem", letterSpacing: "0.2em", textTransform: "uppercase", color: c.textMuted, marginBottom: "1.25rem" }}>Sumber Berita</div>
+          
+          <div style={{ background: c.surface2, border: `1px solid ${c.border}`, borderRadius: 16, padding: "1.25rem", marginBottom: "1rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: "0.85rem" }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: c.amberDim, border: `1px solid ${c.amber}30`, display: "flex", alignItems: "center", justifyContent: "center", color: c.amber, fontSize: "1.2rem" }}><i className={source.logo} /></div>
+              <div>
+                <div style={{ fontFamily: "'Fraunces',serif", fontSize: "1.05rem", color: c.text, fontWeight: 400 }}>{source.name}</div>
+                <div style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.55rem", color: c.textMuted, letterSpacing: "0.04em", marginTop: 3 }}>{source.domain}</div>
+              </div>
             </div>
-            <div style={{ overflow: "hidden" }}>
-              <div style={{ fontFamily: "'Fraunces',serif", fontSize: "1.05rem", color: c.text, fontWeight: 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{source.name}</div>
-              <div style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.55rem", color: c.textMuted, letterSpacing: "0.04em", marginTop: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{source.domain}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, paddingTop: "0.6rem", borderTop: `1px solid ${c.border}` }}>
+              <i className="ri-calendar-line" style={{ fontSize: "0.75rem", color: c.textMuted }} />
+              <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.55rem", color: c.textMuted, letterSpacing: "0.04em" }}>Dipublikasikan {source.publishDate}</span>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, paddingTop: "0.6rem", borderTop: `1px solid ${c.border}` }}>
-            <i className="ri-calendar-line" style={{ fontSize: "0.75rem", color: c.textMuted }} />
-            <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.55rem", color: c.textMuted, letterSpacing: "0.04em" }}>{source.publishDate}</span>
-          </div>
+          
+          <a href={source.url} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: "0.85rem", background: c.amberDim, border: `1px solid ${c.amber}40`, borderRadius: 14, textDecoration: "none", fontFamily: "'Space Mono',monospace", fontSize: "0.62rem", letterSpacing: "0.12em", textTransform: "uppercase", color: c.amber, transition: "all 0.2s" }}>Buka Artikel Asli <i className="ri-external-link-line" style={{ fontSize: "0.85rem" }} /></a>
+          <button onClick={close} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", padding: "0.75rem", marginTop: 8, background: "transparent", border: `1px solid ${c.border}`, borderRadius: 14, cursor: "pointer", fontFamily: "'Space Mono',monospace", fontSize: "0.58rem", letterSpacing: "0.1em", textTransform: "uppercase", color: c.textMuted }}>Tutup</button>
         </div>
-        
-        <a href={source.url} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: "0.85rem", background: c.amberDim, border: `1px solid ${c.amber}40`, borderRadius: 14, textDecoration: "none", fontFamily: "'Space Mono',monospace", fontSize: "0.62rem", letterSpacing: "0.12em", textTransform: "uppercase", color: c.amber, transition: "all 0.2s" }}>Buka Artikel Asli <i className="ri-external-link-line" style={{ fontSize: "0.85rem" }} /></a>
       </div>
     </div>
   );
@@ -48,7 +81,7 @@ export function ShareModal({ card, theme, onClose }: any) {
   
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 999, background: theme === "dark" ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: c.surface, border: `1px solid ${c.borderHover}`, borderRadius: 20, padding: "1.75rem", width: 340, maxWidth: "90vw", boxShadow: theme === "dark" ? "0 40px 100px rgba(0,0,0,0.8)" : "0 20px 60px rgba(0,0,0,0.15)", animation: "cardIn 0.3s cubic-bezier(0.4,0,0.2,1) both" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: c.surface, border: `1px solid ${c.borderHover}`, borderRadius: 20, padding: "1.75rem", width: 340, maxWidth: "90vw", boxShadow: theme === "dark" ? "0 40px 100px rgba(0,0,0,0.8)" : "0 20px 60px rgba(0,0,0,0.15)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
           <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.6rem", letterSpacing: "0.2em", color: c.amber, textTransform: "uppercase" }}>Bagikan</span>
           <button onClick={onClose} style={{ background: "none", border: "none", color: c.textMuted, cursor: "pointer", fontSize: "1.2rem", lineHeight: 1 }}><i className="ri-close-line" /></button>
