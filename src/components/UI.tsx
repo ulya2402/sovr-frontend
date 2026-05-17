@@ -16,36 +16,42 @@ export function SourceSheet({ source, theme, onClose }: any) {
   };
 
   return (
-    <div onClick={close} style={{ position: "fixed", inset: 0, zIndex: 1000, background: vis ? (theme === "dark" ? "rgba(0,0,0,0.65)" : "rgba(0,0,0,0.25)") : "rgba(0,0,0,0)", transition: "background 0.3s", display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
-      {/* --- PERBAIKAN BUG OVERFLOW ---
-        Menambahkan maxHeight dan overflowY agar konten bisa di-scroll di HP pendek.
-        Menambahkan display flex agar padding bawah tetap rapi saat di-scroll.
-      */}
+    <div onClick={close} style={{ 
+      position: "fixed", inset: 0, zIndex: 1000, 
+      background: vis ? (theme === "dark" ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.3)") : "rgba(0,0,0,0)", 
+      transition: "background 0.3s", 
+      display: "flex", 
+      alignItems: "center", /* Diubah dari flex-end menjadi center (Posisi paling aman) */
+      justifyContent: "center",
+      padding: "1.5rem", /* Memberi ruang aman dari tepi layar HP */
+      backdropFilter: "blur(8px)", 
+      WebkitBackdropFilter: "blur(8px)"
+    }}>
       <div 
         onClick={e => e.stopPropagation()} 
         style={{ 
           width: "100%", 
-          maxWidth: 520, 
-          maxHeight: "90vh", 
+          maxWidth: 420, /* Sedikit diperkecil agar pas di tengah */
+          maxHeight: "85vh", 
           overflowY: "auto", 
           background: c.surface, 
-          borderRadius: "22px 22px 0 0", 
+          borderRadius: "24px", /* Dibuat melengkung di semua sisi */
           border: `1px solid ${c.borderHover}`, 
-          borderBottom: "none", 
           display: "flex", 
           flexDirection: "column", 
-          transform: vis ? "translateY(0)" : "translateY(100%)", 
-          transition: "transform 0.32s cubic-bezier(0.4,0,0.2,1)", 
-          boxShadow: theme === "dark" ? "0 -32px 80px rgba(0,0,0,0.7)" : "0 -16px 48px rgba(0,0,0,0.12)" 
+          opacity: vis ? 1 : 0,
+          transform: vis ? "translateY(0) scale(1)" : "translateY(15px) scale(0.95)", /* Animasi membesar dari tengah */
+          transition: "all 0.32s cubic-bezier(0.4,0,0.2,1)", 
+          boxShadow: theme === "dark" ? "0 32px 80px rgba(0,0,0,0.8)" : "0 16px 60px rgba(0,0,0,0.15)" 
         }}
       >
-        <div style={{ display: "flex", justifyContent: "center", padding: "1rem 0 1.25rem", flexShrink: 0 }}><div style={{ width: 36, height: 4, borderRadius: 2, background: c.border }} /></div>
-        
-        {/* Konten Utama */}
-        <div style={{ padding: "0 1.75rem 2.5rem" }}>
-          <div style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.52rem", letterSpacing: "0.2em", textTransform: "uppercase", color: c.textMuted, marginBottom: "1.25rem" }}>Sumber Berita</div>
+        <div style={{ padding: "2rem 1.75rem 1.75rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+            <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.52rem", letterSpacing: "0.2em", textTransform: "uppercase", color: c.textMuted }}>Sumber Berita</span>
+            <button onClick={close} style={{ background: "none", border: "none", color: c.textMuted, cursor: "pointer", fontSize: "1.2rem", lineHeight: 1 }}><i className="ri-close-line" /></button>
+          </div>
           
-          <div style={{ background: c.surface2, border: `1px solid ${c.border}`, borderRadius: 16, padding: "1.25rem", marginBottom: "1rem" }}>
+          <div style={{ background: c.surface2, border: `1px solid ${c.border}`, borderRadius: 16, padding: "1.25rem", marginBottom: "1.25rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: "0.85rem" }}>
               <div style={{ width: 44, height: 44, borderRadius: 12, background: c.amberDim, border: `1px solid ${c.amber}30`, display: "flex", alignItems: "center", justifyContent: "center", color: c.amber, fontSize: "1.2rem" }}><i className={source.logo} /></div>
               <div>
@@ -60,7 +66,6 @@ export function SourceSheet({ source, theme, onClose }: any) {
           </div>
           
           <a href={source.url} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: "0.85rem", background: c.amberDim, border: `1px solid ${c.amber}40`, borderRadius: 14, textDecoration: "none", fontFamily: "'Space Mono',monospace", fontSize: "0.62rem", letterSpacing: "0.12em", textTransform: "uppercase", color: c.amber, transition: "all 0.2s" }}>Buka Artikel Asli <i className="ri-external-link-line" style={{ fontSize: "0.85rem" }} /></a>
-          <button onClick={close} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", padding: "0.75rem", marginTop: 8, background: "transparent", border: `1px solid ${c.border}`, borderRadius: 14, cursor: "pointer", fontFamily: "'Space Mono',monospace", fontSize: "0.58rem", letterSpacing: "0.1em", textTransform: "uppercase", color: c.textMuted }}>Tutup</button>
         </div>
       </div>
     </div>
