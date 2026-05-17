@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { T, FILTERS } from "../theme";
+import { useState, useEffect } from "react";
+import { T } from "../theme";
 
 export function SourceSheet({ source, theme, onClose }: any) {
   const c = T[theme];
