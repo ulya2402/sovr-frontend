@@ -3,11 +3,55 @@ import { T, FILTERS, FMAP } from "./theme";
 import { Navbar, Ticker, Hero } from "./components/Layout";
 import { Card, EditorCard } from "./components/Cards";
 
+// --- PEREDAM KEJUT FORMAT WAKTU ---
+function formatTime(createdAt: string, publishedDate: string) {
+  if (!createdAt) return publishedDate;
+  
+  try {
+    // Memperbaiki format spasi SQLite menjadi format standar ISO (T)
+    const safeDateStr = createdAt.includes('T') ? createdAt : createdAt.replace(' ', 'T');
+    const date = new Date(safeDateStr + 'Z'); 
+    
+    // Jika tanggal tetap invalid setelah dikonversi, fallback ke tanggal tulisan manual
+    if (isNaN(date.getTime())) return publishedDate;
+
+    const now = new Date();
+    const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+    
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const isYesterday = date.getDate() === yesterday.getDate() && date.getMonth() === yesterday.getMonth() && date.getFullYear() === yesterday.getFullYear();
+
+    if (isToday) {
+      const diffMs = now.getTime() - date.getTime();
+      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+      const mins = Math.floor(diffMs / (1000 * 60));
+      if (hours < 1) return mins < 2 ? "Baru saja" : `${mins} menit lalu`;
+      return `${hours} jam lalu`;
+    } else if (isYesterday) {
+      return "Kemarin";
+    } else {
+      return publishedDate; 
+    }
+  } catch (error) {
+    return publishedDate;
+  }
+}
+
 function EditorSection({ theme, articles }: any) {
   const c = T[theme];
-  const picks = articles.slice(0, 2);
+  const picks = articles.filter((a: any) => a.featured);
+  
   const [vis, setVis] = useState(false);
   useEffect(() => { const id = requestAnimationFrame(() => setVis(true)); return () => cancelAnimationFrame(id); }, []);
+
+  if (picks.length === 0) {
+    return (
+      <div style={{ textAlign: "center", padding: "4rem 0", color: c.textMuted, fontFamily: "'Space Mono',monospace" }}>
+        Belum ada berita Pilihan Editor saat ini.
+      </div>
+    );
+  }
 
   return (
     <div style={{ opacity: vis ? 1 : 0, transform: vis ? "translateY(0)" : "translateY(20px)", transition: "all 0.5s cubic-bezier(0.4,0,0.2,1)" }}>
@@ -38,30 +82,48 @@ export default function App() {
   const [mainTab, setMainTab] = useState("Feed");
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(10);
+  const itemsPerPage = 10;
+
   const c = T[theme];
+
+  useEffect(() => {
+    setVisibleCount(itemsPerPage);
+  }, [filter, mainTab]);
 
   useEffect(() => {
     fetch("https://backend-sovr.botgampang123.workers.dev/api/articles")
       .then(res => res.json())
       .then(data => {
-        const mappedData = data.map((item: any) => ({
-          id: item.id,
-          tag: item.tag,
-          cat: item.category,
-          featured: false,
-          icon: item.category === "ai" ? "ri-sparkling-2-line" : item.category === "kripto" ? "ri-coin-line" : "ri-newspaper-line",
-          title: item.title,
-          body: item.body,
-          author: item.author,
-          time: "Baru saja",
-          source: {
-            name: item.source_name,
-            domain: new URL(item.source_url).hostname.replace('www.', ''),
-            url: item.source_url,
-            logo: item.source_logo,
-            publishDate: item.published_date
+        const mappedData = data.map((item: any) => {
+          let namaDomain = "sovr.news";
+          try {
+            if (item.source_url && item.source_url !== "#" && item.source_url.startsWith("http")) {
+              namaDomain = new URL(item.source_url).hostname.replace('www.', '');
+            }
+          } catch (urlError) {
+            console.log("https://stackoverflow.com/questions/4053924/python-parse-date-format-ignore-parts-of-string", urlError);
           }
-        }));
+
+          return {
+            id: item.id,
+            tag: item.tag || "Insight",
+            cat: item.category || "market",
+            featured: item.featured === 1, 
+            icon: item.source_logo || "ri-newspaper-line",
+            title: item.title || "Untitled",
+            body: item.body || "",
+            author: item.author || "Admin",
+            time: formatTime(item.created_at, item.published_date),
+            source: {
+              name: item.source_name || "SOVR",
+              domain: namaDomain,
+              url: item.source_url || "#",
+              logo: item.source_logo || "ri-newspaper-line",
+              publishDate: item.published_date
+            }
+          };
+        });
         setArticles(mappedData);
         setLoading(false);
       })
@@ -72,6 +134,8 @@ export default function App() {
   }, []);
 
   const filtered = articles.filter(card => filter === "Semua" || card.cat === FMAP[filter]);
+  const displayedArticles = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
 
   return (
     <>
@@ -89,13 +153,29 @@ export default function App() {
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: "1.75rem" }}>
                 {FILTERS.map(f => <button key={f} onClick={() => setFilter(f)} style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.56rem", letterSpacing: "0.1em", textTransform: "uppercase", color: filter === f ? c.amber : c.textMuted, background: filter === f ? c.amberDim : "transparent", border: `1px solid ${filter === f ? c.amber + "40" : c.border}`, borderRadius: 100, padding: "0.28rem 0.85rem", cursor: "pointer", transition: "all 0.2s" }}>{f}</button>)}
               </div>
+              
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {loading ? (
                   <p style={{ color: c.textMuted, textAlign: "center", fontFamily: "'Space Mono',monospace" }}>Memuat insight...</p>
+                ) : displayedArticles.length === 0 ? (
+                  <p style={{ color: c.textMuted, textAlign: "center", fontFamily: "'Space Mono',monospace" }}>Belum ada artikel untuk kategori ini.</p>
                 ) : (
-                  filtered.map((card, i) => <Card key={card.id} card={card} theme={theme} idx={i} />)
+                  displayedArticles.map((card, i) => <Card key={card.id} card={card} theme={theme} idx={i} />)
                 )}
               </div>
+
+              {hasMore && !loading && (
+                <div style={{ display: "flex", justifyContent: "center", marginTop: "2.5rem" }}>
+                  <button 
+                    onClick={() => setVisibleCount(prev => prev + itemsPerPage)} 
+                    style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "'Space Mono',monospace", fontSize: "0.58rem", letterSpacing: "0.14em", textTransform: "uppercase", color: c.textMuted, background: c.glass, backdropFilter: "blur(12px)", border: `1px solid ${c.border}`, borderRadius: 12, padding: "0.75rem 2rem", cursor: "pointer", transition: "all 0.2s" }}
+                    onMouseEnter={e => { e.currentTarget.style.color = c.amber; e.currentTarget.style.borderColor = c.amber + "40"; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = c.textMuted; e.currentTarget.style.borderColor = c.border; }}
+                  >
+                    Muat Lebih Banyak <i className="ri-arrow-down-line" style={{ fontSize: "0.85rem" }} />
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <EditorSection theme={theme} articles={articles} />
