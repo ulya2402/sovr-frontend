@@ -118,7 +118,7 @@ export default function App() {
         });
         setArticles(mappedData);
         setLoading(false);
-      }).catch(err => { setLoading(false); });
+      }).catch(() => { setLoading(false); });
   }, []);
 
   const filtered = articles.filter(card => filter === "Semua" || card.cat === FMAP[filter]);
