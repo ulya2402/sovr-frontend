@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { T, FILTERS } from "../theme";
+import { T } from "../theme";
 
 export function Hero({ theme, tickerData }: any) {
   const c = T[theme];
