@@ -106,59 +106,68 @@ export function Ticker({ theme, tickerData }: any) {
   );
 }
 
-export function Navbar({ theme, setTheme, filter, setFilter, mainTab, setMainTab }: any) {
+export function Navbar({ theme, setTheme, mainTab, setMainTab }: any) {
   const c = T[theme];
   
-  // Fungsi Peluncur yang sudah dikalibrasi agar pas dan tidak ada ruang kosong
+  // PERBAIKAN LOGIKA: Semua tab sekarang langsung meluncur ke area konten murni
   const scrollToFeed = () => {
     const feedEl = document.getElementById("feed");
     if (feedEl) {
-      // PERUBAHAN: Diubah dari - 85 menjadi - 40 agar pas menempel di bawah ticker
       const y = feedEl.getBoundingClientRect().top + window.scrollY - 40;
       window.scrollTo({ top: y, behavior: "smooth" });
     }
   };
 
   return (
-    <nav className="nav-container" style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2rem", background: c.glass, backdropFilter: "blur(20px)", borderBottom: `1px solid ${c.border}` }}>
-      <a href="#" style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.2rem", fontWeight: 800, letterSpacing: "-0.02em", color: c.text, textDecoration: "none" }}>SOVR<span style={{ color: c.accent }}>.</span></a>
+    <nav className="nav-container" style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 1.25rem", background: c.glass, backdropFilter: "blur(20px)", borderBottom: `1px solid ${c.border}` }}>
       
-      <div className="nav-center" style={{ display: "flex", alignItems: "center", gap: 4, position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
-        {["Feed", "Pilihan Editor"].map(tab => (
+      {/* 1. KIRI (Logo) */}
+      <div style={{ flexShrink: 0, display: "flex", alignItems: "center", width: 70 }}>
+        <a href="#" style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.15rem", fontWeight: 800, letterSpacing: "-0.02em", color: c.text, textDecoration: "none" }}>SOVR<span style={{ color: c.accent }}>.</span></a>
+      </div>
+      
+      {/* 2. TENGAH (Menu Utama Murni) */}
+      <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center", gap: "2px" }}>
+        {["Feed", "Pilihan Editor", "Vault"].map(tab => (
           <button 
             key={tab} 
-            onClick={() => {
-              setMainTab(tab);
-              scrollToFeed();
+            onClick={() => { 
+              setMainTab(tab); 
+              scrollToFeed(); // <-- SEKARANG LANGSUNG MELUNCUR KE KONTEN SAMA RATA
             }} 
-            style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: mainTab === tab ? c.accent : c.textMuted, background: "transparent", border: "none", padding: "0.4rem 1rem", cursor: "pointer", transition: "all 0.2s", position: "relative" }}
+            style={{ 
+              fontFamily: "'Manrope', sans-serif", 
+              fontSize: "clamp(0.55rem, 2.5vw, 0.65rem)", 
+              fontWeight: 700, 
+              letterSpacing: "0.05em", 
+              textTransform: "uppercase", 
+              color: mainTab === tab ? c.accent : c.textMuted, 
+              background: "transparent", 
+              border: "none", 
+              padding: "0.4rem 0.5rem", 
+              cursor: "pointer", 
+              transition: "color 0.2s", 
+              position: "relative", 
+              whiteSpace: "nowrap" 
+            }}
           >
-            {tab}{mainTab === tab && <span style={{ position: "absolute", bottom: 0, left: "15%", right: "15%", height: 2, background: c.accent }} />}
+            {tab}
+            {mainTab === tab && <span style={{ position: "absolute", bottom: 0, left: "15%", right: "15%", height: 2, background: c.accent, borderRadius: 2 }} />}
           </button>
         ))}
-
-        {mainTab === "Feed" && <>
-          <span className="nav-filters" style={{ width: 1, height: 16, background: c.border, margin: "0 8px" }} />
-          {FILTERS.map(f => (
-            <button 
-              className="nav-filters" 
-              key={f} 
-              onClick={() => {
-                setFilter(f);
-                scrollToFeed();
-              }} 
-              style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: filter === f ? c.bg : c.textMuted, background: filter === f ? c.accent : "transparent", border: `1px solid ${filter === f ? c.accent : "transparent"}`, borderRadius: 100, padding: "0.25rem 0.8rem", cursor: "pointer", transition: "all 0.2s" }}
-            >
-              {f}
-            </button>
-          ))}
-        </>}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <div className="live-text" style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", color: c.accent }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: c.accent, display: "inline-block", animation: "blink 2s ease infinite" }} />LIVE</div>
-        <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} style={{ background: "transparent", border: `1px solid ${c.border}`, borderRadius: 6, width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: c.accent, fontSize: "1rem", transition: "all 0.2s" }}><i className={theme === "dark" ? "ri-sun-fill" : "ri-moon-fill"} /></button>
+      {/* 3. KANAN (Live & Tema) */}
+      <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, width: 70 }}>
+        <div className="live-text" style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "'Manrope', sans-serif", fontSize: "0.55rem", fontWeight: 700, letterSpacing: "0.1em", color: c.accent }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: c.accent, display: "inline-block", animation: "blink 2s ease infinite" }} />
+          LIVE
+        </div>
+        <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} style={{ background: "transparent", border: `1px solid ${c.border}`, borderRadius: 6, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: c.accent, fontSize: "0.9rem", transition: "all 0.2s" }}>
+          <i className={theme === "dark" ? "ri-sun-fill" : "ri-moon-fill"} />
+        </button>
       </div>
+
     </nav>
   );
 }

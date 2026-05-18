@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { T, FILTERS, FMAP } from "./theme";
 import { Navbar, Ticker, Hero } from "./components/Layout";
 import { Card, EditorCard } from "./components/Cards";
+import { VaultGrid, VaultDetail } from "./components/Vault"; // Import Vault komponen
 
 function formatTime(createdAt: string, publishedDate: string) {
   if (!createdAt) return publishedDate;
@@ -71,11 +72,15 @@ export default function App() {
   const [filter, setFilter] = useState("Semua");
   const [mainTab, setMainTab] = useState("Feed");
   const [articles, setArticles] = useState<any[]>([]);
+  const [vaultTools, setVaultTools] = useState<any[]>([]); // 🌟 STATE BARU: Vault Data
   const [tickerData, setTickerData] = useState<any>(null); 
   const [loading, setLoading] = useState(true);
   
   const [visibleCount, setVisibleCount] = useState(10);
   const itemsPerPage = 10;
+  
+  const [currentVaultId, setCurrentVaultId] = useState<string | null>(null); // 🌟 STATE BARU: Router Vault
+  
   const c = T[theme];
 
   useEffect(() => {
@@ -118,6 +123,35 @@ export default function App() {
         setLoading(false);
       }).catch(() => { setLoading(false); });
   }, []);
+
+  // 🌟 API BARU: Mengambil Data Vault
+  useEffect(() => {
+    fetch("https://backend-sovr.botgampang123.workers.dev/api/vault")
+      .then(res => res.json())
+      .then(data => setVaultTools(data))
+      .catch(() => {});
+  }, []);
+
+  // 🌟 ROUTER BARU: Membaca perubahan URL untuk Halaman Khusus Vault (SEO)
+  useEffect(() => {
+    const handleLocationChange = () => {
+      const params = new URLSearchParams(window.location.search);
+      const vaultId = params.get("vault");
+      const tabParam = params.get("tab");
+
+      if (vaultId) {
+        setCurrentVaultId(vaultId);
+      } else {
+        setCurrentVaultId(null);
+        if (tabParam === "vault") setMainTab("Vault");
+      }
+    };
+
+    handleLocationChange();
+    window.addEventListener('popstate', handleLocationChange);
+    return () => window.removeEventListener('popstate', handleLocationChange);
+  }, []);
+
 
   // =========================================================
   // 🔥 PERUBAHAN UTAMA: SISTEM RADAR PELUNCUR (ANTI-GAGAL) 🔥
@@ -178,14 +212,36 @@ export default function App() {
       <Navbar 
         theme={theme} setTheme={setTheme} 
         filter={filter} setFilter={(f: any) => { setFilter(f); setVisibleCount(itemsPerPage); }} 
-        mainTab={mainTab} setMainTab={(t: any) => { setMainTab(t); setVisibleCount(itemsPerPage); }} 
+        // 🌟 UPDATE: Modifikasi reset URL saat ganti tab Navbar agar bersih
+        mainTab={mainTab} setMainTab={(t: any) => { 
+          setMainTab(t); 
+          setCurrentVaultId(null);
+          window.history.pushState({}, '', window.location.pathname);
+          setVisibleCount(itemsPerPage); 
+        }} 
       />
-      <Ticker theme={theme} tickerData={tickerData} />
-      <Hero theme={theme} tickerData={tickerData} />
+      
+      {/* 🌟 UPDATE: Sembunyikan Ticker dan Hero jika sedang membuka Halaman Detail Vault */}
+      {!currentVaultId && <Ticker theme={theme} tickerData={tickerData} />}
+      {!currentVaultId && <Hero theme={theme} tickerData={tickerData} />}
       
       <section id="feed" style={{ background: c.bg, minHeight: "60vh", transition: "background 0.4s" }}>
-        <div style={{ maxWidth: 680, margin: "0 auto", padding: "4rem 1.5rem 6rem" }}>
-          {mainTab === "Feed" ? (
+        {/* 🌟 UPDATE: Lebar kanvas diubah sedikit jika membuka halaman khusus Vault */}
+        <div style={{ maxWidth: currentVaultId ? 800 : 680, margin: "0 auto", padding: "4rem 1.5rem 6rem" }}>
+          
+          {/* 🌟 UPDATE: LOGIKA ROUTER TAMPILAN */}
+          {currentVaultId ? (
+            // 1. Tampilkan Halaman SEO Detail Tool AI
+            <VaultDetail 
+              tool={vaultTools.find(t => t.id.toString() === currentVaultId)} 
+              allTools={vaultTools} 
+              theme={theme} 
+            />
+          ) : mainTab === "Vault" ? (
+            // 2. Tampilkan Galeri Vault Grid
+            <VaultGrid tools={vaultTools} theme={theme} />
+          ) : mainTab === "Feed" ? (
+            // 3. Tampilkan Feed Berita Biasa (Persis seperti aslinya)
             <>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
                 <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.75rem", fontWeight: 800, letterSpacing: "0.1em", color: c.text, textTransform: "uppercase" }}>Live Feed</span>
@@ -218,6 +274,7 @@ export default function App() {
               )}
             </>
           ) : (
+            // 4. Tampilkan Pilihan Editor
             <EditorSection theme={theme} articles={articles} />
           )}
         </div>
