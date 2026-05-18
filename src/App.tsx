@@ -107,10 +107,21 @@ export default function App() {
       .then(res => res.json())
       .then(data => {
         const mappedData = data.map((item: any) => {
-          let namaDomain = "sovr.news";
+          
+          let cleanName = item.source_name || "SOVR"; 
           try {
             if (item.source_url && item.source_url !== "#" && item.source_url.startsWith("http")) {
-              namaDomain = new URL(item.source_url).hostname.replace('www.', '');
+              const host = new URL(item.source_url).hostname.replace('www.', '');
+              const parts = host.split('.');
+              
+              // Mengambil nama utama domain (menghindari sub-domain seperti 'news.' atau 'blog.')
+              let rawName = parts[0];
+              if (["news", "blog", "en", "id"].includes(rawName) && parts.length > 1) {
+                rawName = parts[1];
+              }
+              
+              // Mengubah huruf pertama menjadi kapital (Contoh: "coindesk" -> "Coindesk")
+              cleanName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
             }
           } catch (urlError) {
             console.log("URL Parser Ignore", urlError);
@@ -127,8 +138,8 @@ export default function App() {
             author: item.author || "Admin",
             time: formatTime(item.created_at, item.published_date),
             source: {
-              name: item.source_name || "SOVR",
-              domain: namaDomain,
+              name: cleanName,    // Memakai nama yang sudah dibersihkan
+              domain: cleanName,  // Memakai nama yang sudah dibersihkan
               url: item.source_url || "#",
               logo: item.source_logo || "ri-newspaper-line",
               publishDate: item.published_date

@@ -75,14 +75,22 @@ export function Ticker({ theme, tickerData }: any) { // <-- PERUBAHAN: Menerima 
   const c = T[theme];
   // PERUBAHAN: Menghapus useState dan fetch, langsung pakai tickerData
   const coins = tickerData?.coins || [];
-  const status = "Menghubungkan ke API Kripto...";
 
   if (coins.length === 0) {
     return (
-      <div style={{ position: "fixed", top: 56, left: 0, right: 0, zIndex: 199, background: theme === "dark" ? "#110f0d" : "#f8f5f0", borderBottom: `1px solid ${c.border}`, padding: "0.5rem 0", textAlign: "center" }}>
-        <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.65rem", color: c.amber }}>
-          {status}
-        </span>
+      // --- PERUBAHAN: MENGGANTI TEKS STATIS DENGAN ANIMASI LOADING BAR ---
+      <div style={{ position: "fixed", top: 56, left: 0, right: 0, zIndex: 199, background: theme === "dark" ? "#110f0d" : "#f8f5f0", borderBottom: `1px solid ${c.border}`, padding: "0.5rem 0", display: "flex", justifyContent: "center", alignItems: "center", minHeight: "26.5px" }}>
+        <style>
+          {`
+            @keyframes loadingBarSlide {
+              0% { transform: translateX(-100%); }
+              100% { transform: translateX(250%); }
+            }
+          `}
+        </style>
+        <div style={{ width: 100, height: 2, background: c.border, borderRadius: 2, overflow: "hidden", position: "relative" }}>
+          <div style={{ position: "absolute", top: 0, left: 0, height: "100%", width: "40%", background: c.amber, borderRadius: 2, animation: "loadingBarSlide 1.2s infinite cubic-bezier(0.4, 0, 0.2, 1)" }} />
+        </div>
       </div>
     );
   }
