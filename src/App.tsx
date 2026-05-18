@@ -56,7 +56,6 @@ function EditorSection({ theme, articles }: any) {
 }
 
 export default function App() {
-  // --- PERUBAHAN TEMA: Membaca dari LocalStorage, Default "light" ---
   const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('sovr_theme');
@@ -65,20 +64,19 @@ export default function App() {
     return "light"; 
   });
 
-  // --- PERUBAHAN TEMA: Menyimpan ke LocalStorage setiap kali tema berubah ---
   useEffect(() => {
     localStorage.setItem('sovr_theme', theme);
   }, [theme]);
+
   const [filter, setFilter] = useState("Semua");
   const [mainTab, setMainTab] = useState("Feed");
   const [articles, setArticles] = useState<any[]>([]);
   const [tickerData, setTickerData] = useState<any>(null); 
   const [loading, setLoading] = useState(true);
+  
   const [visibleCount, setVisibleCount] = useState(10);
   const itemsPerPage = 10;
   const c = T[theme];
-
-  useEffect(() => { setVisibleCount(itemsPerPage); }, [filter, mainTab]);
 
   useEffect(() => {
     fetch("https://backend-sovr.botgampang123.workers.dev/api/ticker")
@@ -107,7 +105,7 @@ export default function App() {
             id: item.id,
             tag: item.tag || "Insight",
             cat: item.category || "market",
-            featured: item.featured === 1, 
+            featured: item.featured === 1 || item.featured === "1" || item.featured === true || String(item.featured).toLowerCase() === "true", 
             icon: item.source_logo || "ri-newspaper-line",
             title: item.title || "Untitled",
             body: item.body || "",
@@ -121,13 +119,67 @@ export default function App() {
       }).catch(() => { setLoading(false); });
   }, []);
 
+  // =========================================================
+  // 🔥 PERUBAHAN UTAMA: SISTEM RADAR PELUNCUR (ANTI-GAGAL) 🔥
+  // =========================================================
+  useEffect(() => {
+    if (!loading && articles.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const articleId = params.get("id");
+      
+      if (articleId) {
+        const targetArticle = articles.find(a => a.id.toString() === articleId);
+        
+        if (targetArticle) {
+          // 1. Arahkan Tab ke tempat yang benar
+          if (targetArticle.featured) {
+            setMainTab("Pilihan Editor");
+          } else {
+            setMainTab("Feed");
+            setFilter("Semua");
+            const articleIndex = articles.findIndex(a => a.id.toString() === articleId);
+            if (articleIndex >= visibleCount) {
+              setVisibleCount(articleIndex + 5); 
+            }
+          }
+
+          // 2. Aktifkan Radar Pencari Elemen!
+          let radarCount = 0;
+          const radar = setInterval(() => {
+            const element = document.getElementById(`article-${articleId}`);
+            if (element) {
+              // Jika kotak berita ketemu di layar, hentikan radar dan meluncur!
+              clearInterval(radar);
+              const y = element.getBoundingClientRect().top + window.scrollY - 100;
+              window.scrollTo({ top: y, behavior: "smooth" });
+              
+              // Bersihkan link setelah berhasil mendarat
+              window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            
+            // Keamanan: Hentikan radar jika sudah mencari lebih dari 2 detik (20x) agar tidak error
+            radarCount++;
+            if (radarCount > 20) {
+              clearInterval(radar);
+            }
+          }, 100); // Radar berputar mencari setiap 0.1 detik
+        }
+      }
+    }
+  }, [loading, articles]); 
+  // =========================================================
+
   const filtered = articles.filter(card => filter === "Semua" || card.cat === FMAP[filter]);
   const displayedArticles = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
 
   return (
     <>
-      <Navbar theme={theme} setTheme={setTheme} filter={filter} setFilter={setFilter} mainTab={mainTab} setMainTab={setMainTab} />
+      <Navbar 
+        theme={theme} setTheme={setTheme} 
+        filter={filter} setFilter={(f: any) => { setFilter(f); setVisibleCount(itemsPerPage); }} 
+        mainTab={mainTab} setMainTab={(t: any) => { setMainTab(t); setVisibleCount(itemsPerPage); }} 
+      />
       <Ticker theme={theme} tickerData={tickerData} />
       <Hero theme={theme} tickerData={tickerData} />
       
@@ -140,7 +192,7 @@ export default function App() {
                 <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, color: c.textMuted }}>{filtered.length} entries</span>
               </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: "2rem" }}>
-                {FILTERS.map(f => <button key={f} onClick={() => setFilter(f)} style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: filter === f ? c.bg : c.textMuted, background: filter === f ? c.accent : "transparent", border: `1px solid ${filter === f ? c.accent : c.border}`, borderRadius: 100, padding: "0.35rem 1rem", cursor: "pointer", transition: "all 0.2s" }}>{f}</button>)}
+                {FILTERS.map(f => <button key={f} onClick={() => { setFilter(f); setVisibleCount(itemsPerPage); }} style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: filter === f ? c.bg : c.textMuted, background: filter === f ? c.accent : "transparent", border: `1px solid ${filter === f ? c.accent : c.border}`, borderRadius: 100, padding: "0.35rem 1rem", cursor: "pointer", transition: "all 0.2s" }}>{f}</button>)}
               </div>
               
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -149,7 +201,11 @@ export default function App() {
                 ) : displayedArticles.length === 0 ? (
                   <p style={{ color: c.textMuted, textAlign: "center", fontFamily: "'Manrope', sans-serif", fontWeight: 600 }}>Belum ada artikel untuk kategori ini.</p>
                 ) : (
-                  displayedArticles.map((card, i) => <Card key={card.id} card={card} theme={theme} idx={i} />)
+                  displayedArticles.map((card, i) => (
+                    <div id={`article-${card.id}`} key={card.id}>
+                      <Card card={card} theme={theme} idx={i} />
+                    </div>
+                  ))
                 )}
               </div>
 
