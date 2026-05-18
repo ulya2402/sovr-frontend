@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { T, FILTERS } from "../theme";
 
-export function Hero({ theme }: any) {
+export function Hero({ theme, tickerData }: any) { // <-- PERUBAHAN: Menambah tickerData
   const c = T[theme];
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [now, setNow] = useState(new Date());
@@ -24,6 +24,19 @@ export function Hero({ theme }: any) {
   }, [theme]);
   const timeStr = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const dateStr = now.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
+  // --- PERUBAHAN: MENYIAPKAN DATA DINAMIS DARI API ---
+  const btc = tickerData?.coins?.find((c: any) => c.symbol === "BTC") || { price: "...", change: "...", isUp: true };
+  const eth = tickerData?.coins?.find((c: any) => c.symbol === "ETH") || { price: "...", change: "...", isUp: true };
+  const fng = tickerData?.fng || { value: "...", classification: "Memuat..." };
+
+  // --- PERUBAHAN: MENGGANTI HARDCODE DENGAN DATA VARIABEL DI ATAS ---
+  const statCards = [
+    { label: "Bitcoin", val: `$${btc.price}`, ch: btc.change, up: btc.isUp, icon: "ri-coin-line" },
+    { label: "Fear & Greed", val: fng.value, ch: fng.classification, up: fng.classification.toLowerCase().includes("greed"), icon: "ri-emotion-line" },
+    { label: "Ethereum", val: `$${eth.price}`, ch: eth.change, up: eth.isUp, icon: "ri-donut-chart-line" }
+  ];
+
   return (
     <section style={{ position: "relative", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "90px 2rem 3rem", overflow: "hidden", background: c.bg }}>
       <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 0 }} />
@@ -36,7 +49,9 @@ export function Hero({ theme }: any) {
         <div style={{ marginBottom: "0.5rem", lineHeight: 1 }}><span style={{ fontFamily: "'Fraunces',serif", fontSize: "clamp(5.5rem,15vw,11rem)", fontWeight: 300, color: c.text, letterSpacing: "0.12em", textTransform: "uppercase" }}>S<span style={{ color: c.amber }}>O</span>VR</span><span style={{ fontFamily: "'Fraunces',serif", fontSize: "clamp(3rem,8vw,6rem)", color: c.amber, fontWeight: 300 }}>.</span></div>
         <p style={{ fontFamily: "'Fraunces',serif", fontSize: "clamp(1rem,2.5vw,1.3rem)", fontStyle: "italic", fontWeight: 300, color: c.textSub, marginBottom: "2.5rem", letterSpacing: "0.03em" }}>Insight in Seconds</p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: "3rem" }}>
-          {[{ label: "Bitcoin", val: "$98,240", ch: "+2.4%", up: true, icon: "ri-coin-line" }, { label: "Fear & Greed", val: "72", ch: "Greed", up: true, icon: "ri-emotion-line" }, { label: "Ethereum", val: "$3,812", ch: "-0.8%", up: false, icon: "ri-donut-chart-line" }].map(s => (
+          
+          {/* PERUBAHAN: Menggunakan statCards yang berisi data dinamis */}
+          {statCards.map(s => (
             <div key={s.label} style={{ background: c.glass, backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", border: `1px solid ${c.border}`, borderRadius: 16, padding: "0.85rem 1.3rem", display: "flex", flexDirection: "column", alignItems: "center", gap: 5, minWidth: 115 }}>
               <i className={s.icon} style={{ fontSize: "1.1rem", color: c.amber, opacity: 0.75 }} />
               <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "1rem", color: c.text, fontWeight: 500 }}>{s.val}</span>
@@ -44,6 +59,7 @@ export function Hero({ theme }: any) {
               <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.48rem", letterSpacing: "0.1em", color: c.textMuted, textTransform: "uppercase" }}>{s.label}</span>
             </div>
           ))}
+
         </div>
         <a href="#feed" style={{ display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "'Space Mono',monospace", fontSize: "0.62rem", letterSpacing: "0.14em", textTransform: "uppercase", color: c.amber, textDecoration: "none", background: c.amberDim, backdropFilter: "blur(16px)", border: `1px solid ${c.amber}40`, borderRadius: 12, padding: "0.85rem 2rem", transition: "all 0.25s" }} onMouseEnter={e => { e.currentTarget.style.background = c.amber + "28"; e.currentTarget.style.transform = "translateY(-2px)"; }} onMouseLeave={e => { e.currentTarget.style.background = c.amberDim; e.currentTarget.style.transform = "translateY(0)"; }}>Baca Update <i className="ri-arrow-right-line" style={{ fontSize: "0.85rem" }} /></a>
       </div>
@@ -55,33 +71,14 @@ export function Hero({ theme }: any) {
   );
 }
 
-export function Ticker({ theme }: any) {
+export function Ticker({ theme, tickerData }: any) { // <-- PERUBAHAN: Menerima tickerData
   const c = T[theme];
-  const [coins, setCoins] = useState<any[]>([]);
-  const [status, setStatus] = useState("Menghubungkan ke API Kripto...");
-
-  useEffect(() => {
-    fetch("https://backend-sovr.botgampang123.workers.dev/api/ticker")
-      .then(res => {
-        if (!res.ok) throw new Error("Jalur ditolak");
-        return res.json();
-      })
-      .then(data => {
-        if (data && data.length > 0) {
-          setCoins(data);
-        } else {
-          setStatus("Data dari API kosong.");
-        }
-      })
-      .catch(err => {
-        console.error("Gagal memuat ticker", err);
-        setStatus(`Gagal: ${err.message}`);
-      });
-  }, []);
+  // PERUBAHAN: Menghapus useState dan fetch, langsung pakai tickerData
+  const coins = tickerData?.coins || [];
+  const status = "Menghubungkan ke API Kripto...";
 
   if (coins.length === 0) {
     return (
-      // PERUBAHAN: Menambahkan position: "fixed", top: 56, left: 0, right: 0, zIndex: 199
       <div style={{ position: "fixed", top: 56, left: 0, right: 0, zIndex: 199, background: theme === "dark" ? "#110f0d" : "#f8f5f0", borderBottom: `1px solid ${c.border}`, padding: "0.5rem 0", textAlign: "center" }}>
         <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.65rem", color: c.amber }}>
           {status}
@@ -91,7 +88,6 @@ export function Ticker({ theme }: any) {
   }
 
   return (
-    // PERUBAHAN: Menambahkan position: "fixed", top: 56, left: 0, right: 0, zIndex: 199
     <div style={{ position: "fixed", top: 56, left: 0, right: 0, zIndex: 199, background: theme === "dark" ? "#110f0d" : "#f8f5f0", borderBottom: `1px solid ${c.border}`, padding: "0.45rem 0", overflow: "hidden", display: "flex" }}>
       <style>
         {`

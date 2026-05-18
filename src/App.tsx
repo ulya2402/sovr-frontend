@@ -81,6 +81,9 @@ export default function App() {
   const [filter, setFilter] = useState("Semua");
   const [mainTab, setMainTab] = useState("Feed");
   const [articles, setArticles] = useState<any[]>([]);
+  
+  // --- PERUBAHAN 1: MENAMBAHKAN STATE PENAMPUNG DATA API ---
+  const [tickerData, setTickerData] = useState<any>(null); 
   const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(10);
   const itemsPerPage = 10;
@@ -90,6 +93,14 @@ export default function App() {
   useEffect(() => {
     setVisibleCount(itemsPerPage);
   }, [filter, mainTab]);
+
+  // --- PERUBAHAN 2: MEMANGGIL API TICKER SECARA TERPUSAT (CUMA 1 KALI) ---
+  useEffect(() => {
+    fetch("https://backend-sovr.botgampang123.workers.dev/api/ticker")
+      .then(res => res.json())
+      .then(data => setTickerData(data))
+      .catch(err => console.error("Gagal ambil harga", err));
+  }, []);
 
   useEffect(() => {
     fetch("https://backend-sovr.botgampang123.workers.dev/api/articles")
@@ -102,7 +113,7 @@ export default function App() {
               namaDomain = new URL(item.source_url).hostname.replace('www.', '');
             }
           } catch (urlError) {
-            console.log("https://stackoverflow.com/questions/4053924/python-parse-date-format-ignore-parts-of-string", urlError);
+            console.log("URL Parser Ignore", urlError);
           }
 
           return {
@@ -140,8 +151,11 @@ export default function App() {
   return (
     <>
       <Navbar theme={theme} setTheme={setTheme} filter={filter} setFilter={setFilter} mainTab={mainTab} setMainTab={setMainTab} />
-      <Ticker theme={theme} />
-      <Hero theme={theme} />
+      
+      {/* --- PERUBAHAN 3: MEMASUKKAN tickerData KE KOMPONEN --- */}
+      <Ticker theme={theme} tickerData={tickerData} />
+      <Hero theme={theme} tickerData={tickerData} />
+      
       <section id="feed" style={{ background: c.bg, minHeight: "60vh", transition: "background 0.4s" }}>
         <div style={{ maxWidth: 680, margin: "0 auto", padding: "4rem 1.5rem 6rem" }}>
           {mainTab === "Feed" ? (
