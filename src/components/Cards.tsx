@@ -1,80 +1,149 @@
-import { useState } from "react";
-import { T, TAG } from "../theme";
-import { SourceChip, ShareModal } from "./UI";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+import { T } from "../theme";
 
+// ==========================================
+// 1. KARTU FEED (Dengan Animasi Ekstra Halus)
+// ==========================================
 export function Card({ card, theme, idx }: any) {
   const c = T[theme];
-  const tag = TAG[card.cat]?.[theme] || TAG.ai[theme];
-  const [saved, setSaved] = useState(false);
-  const [hov, setHov] = useState(false);
-  const [share, setShare] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
   
+  // Mengukur tinggi asli dari konten untuk animasi melar ke bawah yang sangat mulus
+  const [contentHeight, setContentHeight] = useState("4.8em"); 
+
+  useEffect(() => {
+    if (isExpanded && contentRef.current) {
+      setContentHeight(`${contentRef.current.scrollHeight}px`);
+    } else {
+      setContentHeight("4.8em"); // Tinggi rata-rata 3 baris
+    }
+  }, [isExpanded]);
+
   return (
-    <>
-      {share && <ShareModal card={card} theme={theme} onClose={() => setShare(false)} />}
-      <article onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)} style={{ position: "relative", background: hov ? c.surface2 : c.surface, border: `1px solid ${hov ? c.borderHover : c.border}`, borderRadius: 18, padding: "1.5rem 1.5rem 1.25rem", transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)", transform: hov ? "translateY(-3px)" : "translateY(0)", boxShadow: hov ? (theme === "dark" ? "0 24px 64px rgba(0,0,0,0.45)" : "0 16px 48px rgba(0,0,0,0.09)") : "none", animation: `cardIn 0.55s cubic-bezier(0.4,0,0.2,1) ${idx * 0.07}s both`, overflow: "hidden" }}>
-        <div style={{ position: "absolute", left: 0, top: "20%", bottom: "20%", width: "2px", borderRadius: 2, background: `linear-gradient(to bottom,transparent,${tag.bar},transparent)`, opacity: hov ? 1 : 0, transition: "opacity 0.3s" }} />
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "0.85rem" }}>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontFamily: "'Space Mono',monospace", fontSize: "0.57rem", letterSpacing: "0.08em", textTransform: "uppercase", background: tag.bg, color: tag.color, padding: "0.22rem 0.65rem", borderRadius: 6 }}><i className={card.icon} style={{ fontSize: "0.65rem" }} />{card.tag}</span>
-          <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.52rem", color: c.textMuted, letterSpacing: "0.04em", marginLeft: "auto", display: "flex", alignItems: "center", gap: 4 }}><i className="ri-time-line" style={{ fontSize: "0.6rem" }} />{card.time}</span>
+    <article style={{ display: "flex", flexDirection: "column", gap: 14, padding: "1.75rem", background: c.bg, border: `1px solid ${isExpanded ? c.accent : c.border}`, borderRadius: 12, textDecoration: "none", color: "inherit", transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)", animation: `slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 0.08}s both`, position: "relative" }} onMouseEnter={e => { if(!isExpanded) e.currentTarget.style.transform = "translateY(-2px)"; }} onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; }}>
+      
+      {/* HEADER */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }} onClick={() => setIsExpanded(!isExpanded)}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 28, height: 28, borderRadius: 6, background: c.accentDim, color: c.accent }}><i className="ri-user-3-line" style={{ fontSize: "0.9rem" }} /></div>
+          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.75rem", fontWeight: 700, color: c.accent, textTransform: "uppercase", letterSpacing: "0.08em" }}>{card.author}</span>
         </div>
-        <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: "1.15rem", fontWeight: 400, lineHeight: 1.32, color: c.text, marginBottom: "0.6rem", letterSpacing: "-0.015em" }}>{card.title}</h2>
-        <p style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 300, fontSize: "0.83rem", lineHeight: 1.75, color: c.textSub, marginBottom: "0.9rem" }}>{card.body}</p>
-        <div style={{ marginBottom: "0.85rem" }}><SourceChip source={card.source} theme={theme} variant="normal" /></div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "0.9rem", borderTop: `1px solid ${c.border}` }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 26, height: 26, borderRadius: "50%", background: tag.bg, border: `1px solid ${tag.bar}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.6rem", color: tag.color, flexShrink: 0 }}><i className="ri-user-3-line" /></div>
-            <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.57rem", color: c.textMuted }}>{card.author}</span>
-          </div>
-          <div style={{ display: "flex", gap: 6 }}>
-            <button onClick={() => setSaved(!saved)} style={{ display: "flex", alignItems: "center", gap: 5, fontFamily: "'Space Mono',monospace", fontSize: "0.54rem", letterSpacing: "0.06em", textTransform: "uppercase", color: saved ? c.amber : c.textMuted, background: saved ? c.amberDim : "transparent", border: `1px solid ${saved ? c.amber + "40" : c.border}`, borderRadius: 8, padding: "0.3rem 0.65rem", cursor: "pointer", transition: "all 0.2s" }}><i className={saved ? "ri-bookmark-fill" : "ri-bookmark-line"} style={{ fontSize: "0.68rem" }} />{saved ? "Tersimpan" : "Simpan"}</button>
-            <button onClick={() => setShare(true)} style={{ display: "flex", alignItems: "center", gap: 5, fontFamily: "'Space Mono',monospace", fontSize: "0.54rem", letterSpacing: "0.06em", textTransform: "uppercase", color: c.textMuted, background: "transparent", border: `1px solid ${c.border}`, borderRadius: 8, padding: "0.3rem 0.65rem", cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={e => { e.currentTarget.style.color = c.blue; e.currentTarget.style.borderColor = c.blue + "50"; }} onMouseLeave={e => { e.currentTarget.style.color = c.textMuted; e.currentTarget.style.borderColor = c.border; }}><i className="ri-share-forward-line" style={{ fontSize: "0.68rem" }} />Share</button>
-          </div>
+        <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.7rem", color: c.textMuted, fontWeight: 500 }}>{card.time}</span>
+      </div>
+      
+      {/* BODY: Memiliki transisi Tinggi (Height) untuk melar perlahan */}
+      <div style={{ cursor: "pointer" }} onClick={() => setIsExpanded(!isExpanded)}>
+        <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.25rem", fontWeight: 700, color: c.text, lineHeight: 1.3, marginBottom: "0.5rem", letterSpacing: "-0.01em" }}>{card.title}</h3>
+        <div style={{ maxHeight: contentHeight, overflow: "hidden", transition: "max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }}>
+          <p ref={contentRef} style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.9rem", color: c.textSub, lineHeight: 1.6, fontWeight: 400, display: "-webkit-box", WebkitLineClamp: isExpanded ? 99 : 3, WebkitBoxOrient: "vertical", whiteSpace: isExpanded ? "pre-wrap" : "normal" }}>
+            {card.body}
+          </p>
         </div>
-      </article>
-    </>
+      </div>
+
+      {/* SUMBER TERSEMBUNYI DENGAN ANIMASI MUNCUL */}
+      {isExpanded && (
+        <div style={{ padding: "1rem", background: c.accentDim, borderRadius: 8, border: `1px dashed ${c.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "0.5rem", animation: "slideFadeDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards", transformOrigin: "top" }}>
+          <style>{`@keyframes slideFadeDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+          <div>
+            <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.55rem", fontWeight: 700, letterSpacing: "0.1em", color: c.textMuted, textTransform: "uppercase", marginBottom: "0.2rem" }}>Sumber Referensi</div>
+            <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.85rem", fontWeight: 800, color: c.accent }}>{card.source.name}</div>
+          </div>
+          {card.source.url !== "#" && (
+            <a href={card.source.url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, color: c.bg, background: c.accent, padding: "0.5rem 1rem", borderRadius: 6, textDecoration: "none" }}>Buka Link <i className="ri-external-link-line" /></a>
+          )}
+        </div>
+      )}
+      
+      {/* FOOTER & TOMBOL PANAH BERANIMASI */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "0.75rem", borderTop: `1px solid ${c.border}`, marginTop: "0.5rem" }}>
+        <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", color: c.textMuted, textTransform: "uppercase", background: c.accentDim, padding: "0.3rem 0.75rem", borderRadius: 4 }}>{card.tag}</span>
+        
+        <button onClick={() => setIsExpanded(!isExpanded)} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: "50%", background: isExpanded ? c.accent : "transparent", border: `1px solid ${c.border}`, color: isExpanded ? c.bg : c.accent, cursor: "pointer", transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)" }}>
+          {/* Ikon diputar mulus 180 derajat */}
+          <i className="ri-arrow-down-s-line" style={{ fontSize: "1.2rem", transform: isExpanded ? "rotate(-180deg)" : "rotate(0deg)", transition: "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }} />
+        </button>
+      </div>
+    </article>
   );
 }
 
+// ==========================================
+// 2. KARTU PILIHAN EDITOR
+// ==========================================
 export function EditorCard({ card, theme, idx }: any) {
   const c = T[theme];
-  const tag = TAG[card.cat]?.[theme] || TAG.ai[theme];
-  const [saved, setSaved] = useState(false);
-  const [hov, setHov] = useState(false);
-  const [share, setShare] = useState(false);
-  
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "unset";
+    return () => { document.body.style.overflow = "unset"; };
+  }, [isOpen]);
+
+  const modalContent = (
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem", background: theme === "dark" ? "rgba(20,20,20,0.6)" : "rgba(230,230,230,0.6)", backdropFilter: "blur(6px)", animation: "fadeIn 0.2s ease" }} onClick={() => setIsOpen(false)}>
+       <div style={{ background: c.bg, border: `1px solid ${c.border}`, borderRadius: 12, padding: "2rem", width: "100%", maxWidth: 540, maxHeight: "85vh", overflowY: "auto", position: "relative", animation: "slideUp 0.3s ease", boxShadow: "0 20px 40px rgba(0,0,0,0.15)" }} onClick={e => e.stopPropagation()}>
+          <button onClick={() => setIsOpen(false)} style={{ position: "absolute", top: "1.5rem", right: "1.5rem", background: c.accentDim, border: "none", color: c.accent, width: 32, height: 32, borderRadius: 6, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "transform 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "rotate(90deg)"} onMouseLeave={e => e.currentTarget.style.transform = "rotate(0)"}>
+            <i className="ri-close-line" style={{ fontSize: "1.2rem" }} />
+          </button>
+          
+          <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", color: c.textMuted, textTransform: "uppercase", marginBottom: "1rem" }}>{card.tag} • {card.time}</div>
+          <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.5rem", fontWeight: 800, color: c.text, lineHeight: 1.3, marginBottom: "1rem", letterSpacing: "-0.01em", paddingRight: "2rem" }}>{card.title}</h3>
+          
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: "1.75rem" }}>
+            <div style={{ width: 28, height: 28, borderRadius: "50%", background: c.accentDim, display: "flex", alignItems: "center", justifyContent: "center", color: c.accent }}><i className="ri-user-star-fill" style={{ fontSize: "0.85rem" }} /></div>
+            <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.8rem", fontWeight: 700, color: c.textSub }}>Kurasi oleh {card.author}</span>
+          </div>
+          
+          <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.95rem", color: c.text, lineHeight: 1.7, fontWeight: 400, marginBottom: "2.5rem", whiteSpace: "pre-wrap" }}>{card.body}</p>
+          
+          <div style={{ padding: "1.25rem", background: c.accentDim, borderRadius: 8, border: `1px solid ${c.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div>
+              <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.05em", color: c.textMuted, textTransform: "uppercase", marginBottom: "0.3rem" }}>Sumber Referensi</div>
+              <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.9rem", fontWeight: 800, color: c.accent }}>{card.source.name}</div>
+            </div>
+            {card.source.url !== "#" ? (
+              <a href={card.source.url} target="_blank" rel="noreferrer" style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.75rem", fontWeight: 700, color: c.bg, background: c.accent, padding: "0.6rem 1.25rem", borderRadius: 6, textDecoration: "none", transition: "transform 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "translateY(-2px)"} onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>Buka Link <i className="ri-external-link-line" /></a>
+            ) : (
+              <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 600, color: c.textMuted }}>Internal SOVR</span>
+            )}
+          </div>
+       </div>
+    </div>
+  );
+
   return (
     <>
-      {share && <ShareModal card={card} theme={theme} onClose={() => setShare(false)} />}
-      <article onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)} style={{ position: "relative", overflow: "hidden", background: theme === "dark" ? (hov ? "#1c1814" : "#161310") : (hov ? "#fdf5e0" : "#fef9ec"), border: `1px solid ${hov ? c.amber + "55" : c.edBorder}`, borderRadius: 22, padding: 0, transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)", transform: hov ? "translateY(-3px)" : "translateY(0)", boxShadow: hov ? (theme === "dark" ? "0 28px 70px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,168,83,0.1)" : "0 16px 50px rgba(180,137,30,0.14)") : (theme === "dark" ? "0 4px 20px rgba(212,168,83,0.04)" : "0 4px 16px rgba(184,137,30,0.07)"), animation: `cardIn 0.55s cubic-bezier(0.4,0,0.2,1) ${idx * 0.1}s both` }}>
-        <div style={{ height: 3, background: `linear-gradient(90deg,transparent,${c.amber},transparent)` }} />
-        <div style={{ position: "absolute", top: 18, right: 18, width: 32, height: 32, borderRadius: "50%", background: c.amberDim, border: `1px solid ${c.amber}40`, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Fraunces',serif", fontSize: "0.85rem", color: c.amber, fontStyle: "italic", zIndex: 1, flexShrink: 0 }}>{idx + 1}</div>
-        <div style={{ padding: "1.5rem 1.75rem 1.5rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "1rem" }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontFamily: "'Space Mono',monospace", fontSize: "0.57rem", letterSpacing: "0.08em", textTransform: "uppercase", background: tag.bg, color: tag.color, padding: "0.22rem 0.65rem", borderRadius: 6 }}><i className={card.icon} style={{ fontSize: "0.65rem" }} />{card.tag}</span>
-            <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.52rem", color: c.textMuted, display: "flex", alignItems: "center", gap: 4 }}><i className="ri-time-line" style={{ fontSize: "0.6rem" }} />{card.time}</span>
-          </div>
-          <h2 style={{ fontFamily: "'Fraunces',serif", fontSize: "1.45rem", fontWeight: 400, lineHeight: 1.28, color: c.text, marginBottom: "0.8rem", letterSpacing: "-0.02em" }}>{card.title}</h2>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "1rem 0" }}>
-            <div style={{ height: 1, flex: 1, background: `linear-gradient(to right,${c.amber}55,transparent)` }} />
-            <i className="ri-quill-pen-line" style={{ fontSize: "0.65rem", color: c.amber, opacity: 0.55 }} />
-            <div style={{ height: 1, width: 18, background: `${c.amber}25` }} />
-          </div>
-          <p style={{ fontFamily: "'Outfit',sans-serif", fontWeight: 300, fontSize: "0.88rem", lineHeight: 1.8, color: c.textSub, marginBottom: "1.1rem" }}>{card.body}</p>
-          <div style={{ marginBottom: "1.1rem" }}><SourceChip source={card.source} theme={theme} variant="editor" /></div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "1rem", borderTop: `1px solid ${c.amber}22` }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 28, height: 28, borderRadius: "50%", background: c.amberDim, border: `1px solid ${c.amber}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.62rem", color: c.amber, flexShrink: 0 }}><i className="ri-quill-pen-line" /></div>
-              <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.57rem", color: c.textMuted }}>{card.author}</span>
-              <span style={{ fontFamily: "'Space Mono',monospace", fontSize: "0.5rem", color: `${c.amber}70` }}>· Editor Pick</span>
-            </div>
-            <div style={{ display: "flex", gap: 6 }}>
-              <button onClick={() => setSaved(!saved)} style={{ display: "flex", alignItems: "center", gap: 5, fontFamily: "'Space Mono',monospace", fontSize: "0.54rem", letterSpacing: "0.06em", textTransform: "uppercase", color: saved ? c.amber : c.textMuted, background: saved ? c.amberDim : "transparent", border: `1px solid ${saved ? c.amber + "50" : c.amber + "22"}`, borderRadius: 8, padding: "0.3rem 0.65rem", cursor: "pointer", transition: "all 0.2s" }}><i className={saved ? "ri-bookmark-fill" : "ri-bookmark-line"} style={{ fontSize: "0.68rem" }} />{saved ? "Tersimpan" : "Simpan"}</button>
-              <button onClick={() => setShare(true)} style={{ display: "flex", alignItems: "center", gap: 5, fontFamily: "'Space Mono',monospace", fontSize: "0.54rem", letterSpacing: "0.06em", textTransform: "uppercase", color: c.textMuted, background: "transparent", border: `1px solid ${c.amber}22`, borderRadius: 8, padding: "0.3rem 0.65rem", cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={e => { e.currentTarget.style.color = c.blue; e.currentTarget.style.borderColor = c.blue + "50"; }} onMouseLeave={e => { e.currentTarget.style.color = c.textMuted; e.currentTarget.style.borderColor = c.amber + "22"; }}><i className="ri-share-forward-line" style={{ fontSize: "0.68rem" }} />Share</button>
+      <div style={{ position: "relative", padding: "2rem", background: c.bg, border: `1px solid ${c.border}`, borderRadius: 12, display: "flex", flexDirection: "column", gap: 16, transition: "all 0.3s ease", animation: `fadeIn 0.6s ease ${idx * 0.1}s both` }} onMouseEnter={e => { e.currentTarget.style.borderColor = c.accent; }} onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; }}>
+        <div style={{ position: "absolute", top: -1, left: -1, width: 40, height: 40, borderTop: `3px solid ${c.accent}`, borderLeft: `3px solid ${c.accent}`, borderTopLeftRadius: 12 }} />
+        
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${c.border}`, paddingBottom: "1rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 8, background: c.accentDim, display: "flex", alignItems: "center", justifyContent: "center", color: c.accent }}><i className="ri-user-star-line" style={{ fontSize: "1.1rem" }} /></div>
+            <div>
+              <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.8rem", fontWeight: 700, color: c.accent, textTransform: "uppercase", letterSpacing: "0.05em" }}>{card.author}</div>
+              <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", color: c.textMuted, fontWeight: 500, marginTop: 2 }}>{card.time}</div>
             </div>
           </div>
+          <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.15em", color: c.text, border: `1px solid ${c.border}`, padding: "0.3rem 0.8rem", borderRadius: 100, textTransform: "uppercase" }}>{card.tag}</div>
         </div>
-      </article>
+        
+        <div>
+          <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.5rem", fontWeight: 800, color: c.text, lineHeight: 1.25, marginBottom: "0.75rem", letterSpacing: "-0.02em" }}>{card.title}</h3>
+          <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.95rem", color: c.textSub, lineHeight: 1.7, fontWeight: 400, display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{card.body}</p>
+        </div>
+        
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "0.5rem" }}>
+          <button onClick={() => setIsOpen(true)} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "'Manrope', sans-serif", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: c.bg, background: c.accent, padding: "0.6rem 1.25rem", borderRadius: 6, border: "none", cursor: "pointer", transition: "transform 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "translateY(-2px)"} onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
+            Baca Selengkapnya <i className="ri-arrow-right-up-line" style={{ fontSize: "1rem" }} />
+          </button>
+        </div>
+      </div>
+
+      {isOpen && createPortal(modalContent, document.body)}
     </>
   );
 }
