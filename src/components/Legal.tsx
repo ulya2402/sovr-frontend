@@ -5,79 +5,429 @@ const MR = (extra?: React.CSSProperties): React.CSSProperties => ({
   ...extra,
 });
 
-export function LegalPage({ type, theme }: { type: string; theme: string }) {
+export function LegalPage({
+  type,
+  theme,
+}: {
+  type: string;
+  theme: string;
+}) {
   const c = T[theme];
 
-  // Konten dinamis berdasarkan rute URL
   const getContent = () => {
     switch (type) {
       case "about":
         return {
-          title: "About SOVR",
-          subtitle: "The Next-Gen Intelligence Hub.",
-          body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-          icon: "ri-information-line"
+          label: "Discovery",
+          title: "The Intelligence Hub",
+          desc: "SOVR adalah platform kurasi informasi masa depan yang dirancang untuk mereka yang menghargai kecepatan, akurasi, dan estetika tinggi.",
+          content: [
+            {
+              h: "Visi Kami",
+              p: "Menjadi jembatan antara kompleksitas teknologi dan kemudahan akses informasi bagi generasi digital yang bergerak cepat.",
+            },
+            {
+              h: "Kurasi Manusia",
+              p: "Di SOVR, kami tidak hanya mengandalkan algoritma mentah. Setiap berita pilihan editor dikurasi langsung oleh tim analis untuk memastikan kualitas narasi, kedalaman sudut pandang, dan kebebasan dari bias informasi.",
+            },
+          ],
+          icon: "ri-focus-3-line",
         };
+
       case "privacy-policy":
         return {
-          title: "Privacy Policy",
-          subtitle: "Your data. Secured. Period.",
-          body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Virtual networks and encrypted spaces. Tempor incididunt ut labore et dolore magna aliqua. Privacy is not an option, it is a fundamental right. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
-          icon: "ri-shield-keyhole-line"
+          label: "Security",
+          title: "Privacy Protocol",
+          desc: "Kami percaya bahwa privasi bukanlah sebuah opsi atau fitur tambahan, melainkan hak asasi mendasar di dalam ruang digital.",
+          content: [
+            {
+              h: "Data Anonim & Minimasi",
+              p: "Sistem SOVR dirancang untuk meminimalisir pelacakan jejak digital. Kami tidak mengumpulkan data pribadi yang tidak diperlukan, dan kami berkomitmen 100% untuk tidak pernah menjual data Anda kepada pihak ketiga.",
+            },
+            {
+              h: "Penyimpanan Preferensi (Cookies)",
+              p: "Kami hanya memanfaatkan penyimpanan lokal (cookie esensial) untuk mengingat preferensi tema Anda (Light atau Dark Mode). Tidak ada cookie pelacakan iklan lintas situs yang tertanam di platform kami.",
+            },
+          ],
+          icon: "ri-shield-flash-line",
         };
+
       case "contact":
         return {
-          title: "Contact Us",
-          subtitle: "Drop a line. Let's build the future.",
-          body: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. For partnerships, media inquiries, or technical support, feel free to reach out to our team at any time.",
-          icon: "ri-mail-send-line"
+          label: "Connection",
+          title: "Get In Touch",
+          desc: "Punya ide kolaborasi gila, kritik membangun, atau sekadar ingin menyapa? Pintu digital kami selalu terbuka untuk Anda.",
+          content: [],
+          icon: "ri-chat-smile-3-line",
         };
+
       default:
-        return { title: "", subtitle: "", body: "", icon: "" };
+        return {
+          label: "",
+          title: "",
+          desc: "",
+          content: [],
+          icon: "",
+        };
     }
   };
 
   const data = getContent();
 
   return (
-    <div style={{ animation: "fadeIn 0.5s ease", maxWidth: 680, margin: "0 auto", padding: "2rem 0 6rem" }}>
-      
-      {/* Header Halaman Legal */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 16, marginBottom: "4rem" }}>
-        <div style={{ width: 56, height: 56, borderRadius: 16, background: c.accentDim, display: "flex", alignItems: "center", justifyContent: "center", color: c.accent, fontSize: "1.5rem" }}>
+    <div
+      style={{
+        width: "100%",
+        maxWidth: 680,
+        margin: "0 auto",
+        padding:
+          "clamp(0.75rem, 2vw, 1rem) clamp(1rem, 4vw, 1.5rem) 5rem",
+        boxSizing: "border-box",
+        overflowX: "hidden",
+      }}
+    >
+      {/* HEADER */}
+      <header
+        style={{
+          textAlign: "left",
+          marginBottom: "clamp(2.2rem, 6vw, 3.5rem)",
+          animation:
+            "fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        }}
+      >
+        <div
+          style={MR({
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+
+            background: c.accentDim,
+            color: c.accent,
+
+            padding: "0.48rem 0.95rem",
+            borderRadius: 100,
+
+            fontSize: "clamp(0.68rem, 1.8vw, 0.74rem)",
+            fontWeight: 800,
+
+            textTransform: "uppercase",
+            letterSpacing: "0.12em",
+
+            marginBottom: "1.25rem",
+          })}
+        >
           <i className={data.icon} />
+          {data.label}
         </div>
-        <div>
-          <h1 style={MR({ fontSize: "2.5rem", fontWeight: 800, color: c.text, margin: "0 0 0.5rem 0", letterSpacing: "-0.03em" })}>
-            {data.title}<span style={{ color: c.accent }}>.</span>
-          </h1>
-          <p style={MR({ fontSize: "1rem", color: c.textSub, fontWeight: 600, opacity: 0.6, margin: 0 })}>
-            {data.subtitle}
-          </p>
-        </div>
-      </div>
 
-      {/* Box Konten ala Bento Box */}
-      <div style={{ background: theme === "dark" ? "rgba(255,255,255,0.02)" : c.bg, border: `1px solid ${c.border}`, borderRadius: 24, padding: "2.5rem", boxShadow: "0 4px 20px rgba(0,0,0,0.01)" }}>
-        <p style={MR({ fontSize: "1rem", color: c.text, lineHeight: 1.8, fontWeight: 500, whiteSpace: "pre-wrap", margin: 0, opacity: 0.9 })}>
-          {data.body}
+        <h1
+          style={MR({
+            fontSize: "clamp(2.2rem, 7vw, 3.4rem)",
+            fontWeight: 800,
+            color: c.text,
+
+            lineHeight: 1.08,
+            letterSpacing: "-0.04em",
+
+            margin: "0 0 1rem 0",
+
+            textWrap: "balance",
+          })}
+        >
+          {data.title}
+          <span style={{ color: c.accent }}>.</span>
+        </h1>
+
+        <p
+          style={MR({
+            fontSize: "clamp(0.98rem, 3vw, 1.08rem)",
+            color: c.textSub,
+
+            lineHeight: 1.72,
+            fontWeight: 500,
+
+            maxWidth: 560,
+
+            opacity: 0.92,
+            margin: 0,
+
+            textWrap: "pretty",
+          })}
+        >
+          {data.desc}
         </p>
+      </header>
 
-        {/* Jika halaman kontak, tambahkan info tambahan yang estetik */}
+      {/* CONTENT */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+
+          gap: "clamp(1.8rem, 5vw, 2.6rem)",
+
+          animation:
+            "fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both",
+        }}
+      >
+        {data.content.map((item, i) => (
+          <section
+            key={i}
+            style={{
+              borderLeft: `2px solid ${c.border}`,
+              paddingLeft: "clamp(1rem, 3vw, 1.25rem)",
+            }}
+          >
+            <h2
+              style={MR({
+                fontSize: "clamp(1rem, 2.4vw, 1.08rem)",
+                fontWeight: 800,
+
+                color: c.text,
+
+                margin: "0 0 0.55rem 0",
+
+                letterSpacing: "-0.01em",
+              })}
+            >
+              {item.h}
+            </h2>
+
+            <p
+              style={MR({
+                fontSize: "clamp(0.96rem, 2.8vw, 1rem)",
+                color: c.textSub,
+
+                lineHeight: 1.82,
+                fontWeight: 500,
+
+                opacity: 0.9,
+                margin: 0,
+
+                textWrap: "pretty",
+              })}
+            >
+              {item.p}
+            </p>
+          </section>
+        ))}
+
+        {/* CONTACT GRID */}
         {type === "contact" && (
-          <div style={{ marginTop: "2.5rem", paddingTop: "2rem", borderTop: `1px dashed ${c.border}`, display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <i className="ri-mail-line" style={{ color: c.accent }} />
-              <span style={MR({ fontSize: "0.9rem", fontWeight: 700, color: c.text })}>hello@sovr.news</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <i className="ri-telegram-line" style={{ color: c.accent }} />
-              <span style={MR({ fontSize: "0.9rem", fontWeight: 700, color: c.text })}>@sovr_official</span>
-            </div>
+          <div
+            style={{
+              display: "grid",
+
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
+
+              gap: 16,
+            }}
+          >
+            {[
+              {
+                label: "Email Support",
+                val: "hello@sovr.news",
+                icon: "ri-mail-line",
+                href: "mailto:hello@sovr.news",
+              },
+              {
+                label: "Telegram Hub",
+                val: "@sovr_official",
+                icon: "ri-telegram-line",
+                href: "https://t.me/sovr_official",
+              },
+              {
+                label: "Twitter / X",
+                val: "@sovr_news",
+                icon: "ri-twitter-x-line",
+                href: "https://x.com/sovr_news",
+              },
+            ].map((item, i) => (
+              <a
+                key={i}
+                href={item.href}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  textDecoration: "none",
+
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+
+                  minHeight: 140,
+
+                  background:
+                    theme === "dark"
+                      ? "rgba(255,255,255,0.02)"
+                      : "rgba(0,0,0,0.015)",
+
+                  padding: "1.35rem",
+
+                  borderRadius: 20,
+                  border: `1px solid ${c.border}`,
+
+                  transition:
+                    "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+
+                  boxSizing: "border-box",
+
+                  willChange: "transform",
+                  WebkitTapHighlightColor: "transparent",
+                }}
+                onMouseEnter={(e) => {
+                  if (window.innerWidth > 768) {
+                    e.currentTarget.style.borderColor = c.accent;
+                    e.currentTarget.style.transform =
+                      "translateY(-4px)";
+                    e.currentTarget.style.background =
+                      theme === "dark"
+                        ? "rgba(255,255,255,0.04)"
+                        : "rgba(0,0,0,0.025)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = c.border;
+                  e.currentTarget.style.transform =
+                    "translateY(0)";
+                  e.currentTarget.style.background =
+                    theme === "dark"
+                      ? "rgba(255,255,255,0.02)"
+                      : "rgba(0,0,0,0.015)";
+                }}
+              >
+                <div>
+                  <i
+                    className={item.icon}
+                    style={{
+                      color: c.accent,
+                      fontSize: "1.2rem",
+
+                      marginBottom: "0.9rem",
+
+                      display: "block",
+                    }}
+                  />
+
+                  <span
+                    style={MR({
+                      display: "block",
+
+                      fontSize:
+                        "clamp(0.68rem, 1.8vw, 0.72rem)",
+
+                      fontWeight: 800,
+
+                      textTransform: "uppercase",
+
+                      color: c.textMuted,
+
+                      letterSpacing: "0.06em",
+
+                      marginBottom: 5,
+                    })}
+                  >
+                    {item.label}
+                  </span>
+                </div>
+
+                <span
+                  style={MR({
+                    fontSize: "0.94rem",
+                    fontWeight: 700,
+
+                    color: c.text,
+
+                    overflowWrap: "break-word",
+
+                    lineHeight: 1.5,
+                  })}
+                >
+                  {item.val}
+                </span>
+              </a>
+            ))}
           </div>
         )}
       </div>
 
+      {/* FOOTER */}
+      <footer
+        style={{
+          marginTop: "clamp(4rem, 8vw, 5.5rem)",
+
+          paddingTop: "1.5rem",
+
+          borderTop: `1px solid ${c.border}`,
+
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+
+          flexWrap: "wrap",
+          rowGap: 10,
+
+          animation: "fadeIn 0.8s ease 0.4s both",
+        }}
+      >
+        <span
+          style={MR({
+            fontSize: "clamp(0.68rem, 1.8vw, 0.72rem)",
+
+            fontWeight: 700,
+
+            textTransform: "uppercase",
+
+            color: c.textMuted,
+
+            letterSpacing: "0.03em",
+          })}
+        >
+          Last Updated: May 2026
+        </span>
+
+        <span
+          style={MR({
+            fontSize: "clamp(0.68rem, 1.8vw, 0.72rem)",
+
+            fontWeight: 700,
+
+            textTransform: "uppercase",
+
+            color: c.textMuted,
+
+            letterSpacing: "0.03em",
+          })}
+        >
+          SOVR HQ
+        </span>
+      </footer>
+
+      {/* ANIMATIONS */}
+      <style>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translate3d(0,20px,0);
+          }
+
+          to {
+            opacity: 1;
+            transform: translate3d(0,0,0);
+          }
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+
+          to {
+            opacity: 0.5;
+          }
+        }
+      `}</style>
     </div>
   );
 }
