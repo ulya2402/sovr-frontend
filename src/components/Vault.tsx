@@ -100,7 +100,7 @@ export function VaultGrid({ tools, theme }: any) {
           Vault<span style={{ color: c.accent }}>.</span>
         </h2>
         <p style={MR({ fontWeight: 600, fontSize: "0.95rem", color: c.textSub, opacity: 0.6, marginTop: "0.5rem" })}>
-          Discover AI tools that matter.
+          Temukan berbagai aplikasi AI terbaik yang sudah kami pilih khusus untuk kamu.
         </p>
       </div>
 
@@ -192,7 +192,7 @@ export function VaultDetail({ tool, allTools, theme }: any) {
         onMouseEnter={e => { e.currentTarget.style.color = c.accent; e.currentTarget.style.transform = "translateX(-4px)"; }}
         onMouseLeave={e => { e.currentTarget.style.color = c.textMuted; e.currentTarget.style.transform = "translateX(0)"; }}
       >
-        <i className="ri-arrow-left-s-line" style={{ fontSize: "1.2rem" }} /> Back to Vault
+        <i className="ri-arrow-left-s-line" style={{ fontSize: "1.2rem" }} /> Back
       </button>
 
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 24, marginBottom: "4rem" }}>
@@ -215,12 +215,14 @@ export function VaultDetail({ tool, allTools, theme }: any) {
         </div>
 
         <a 
-          href={tool.url} target="_blank" rel="noreferrer" 
+          // 🔥 FIX: Jika tidak ada http/https, paksa pakaikan https:// agar tidak nyasar ke web sendiri
+          href={tool.url?.startsWith("http") ? tool.url : `https://${tool.url}`} 
+          target="_blank" rel="noreferrer" 
           style={MR({ display: "inline-flex", alignItems: "center", gap: 10, background: c.accent, color: c.bg, fontSize: "0.9rem", fontWeight: 800, padding: "1rem 2.5rem", borderRadius: 100, textDecoration: "none", transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)", boxShadow: `0 10px 20px ${theme === 'dark' ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)'}` })}
           onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.05)"; e.currentTarget.style.boxShadow = `0 15px 30px ${theme === 'dark' ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.2)'}`; }}
           onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = `0 10px 20px ${theme === 'dark' ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)'}`; }}
         >
-          Open Web App <i className="ri-external-link-line" />
+          Open App <i className="ri-external-link-line" />
         </a>
       </div>
 

@@ -162,3 +162,55 @@ export function Navbar({ theme, setTheme, mainTab }: any) {
     </nav>
   );
 }
+
+export function Footer({ theme }: { theme: string }) {
+  const c = T[theme];
+  
+  const handleFooterClick = (path: string) => {
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new Event('popstate'));
+    
+    // Auto-scroll ke atas area konten biar transisinya mulus
+    const feedEl = document.getElementById("feed");
+    if (feedEl) {
+      const y = feedEl.getBoundingClientRect().top + window.scrollY - 40;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  };
+
+  return (
+    <footer style={{ borderTop: `1px solid ${c.border}`, background: c.bg, padding: "3rem 1.5rem" }}>
+      <div style={{ maxWidth: 680, margin: "0 auto", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+        
+        {/* Link Navigasi Legal */}
+        <div style={{ display: "flex", gap: 24, flexWrap: "wrap", justifyContent: "center" }}>
+          {[
+            { label: "About", path: "/about" },
+            { label: "Privacy Policy", path: "/privacy-policy" },
+            { label: "Contact", path: "/contact" }
+          ].map((item) => (
+            <button 
+              key={item.label}
+              onClick={() => handleFooterClick(item.path)}
+              style={{
+                fontFamily: "'Manrope', sans-serif", fontSize: "0.75rem", fontWeight: 700,
+                letterSpacing: "0.05em", textTransform: "uppercase", background: "transparent",
+                border: "none", color: c.textMuted, cursor: "pointer", transition: "color 0.2s"
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = c.accent}
+              onMouseLeave={(e) => e.currentTarget.style.color = c.textMuted}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Hak Cipta */}
+        <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 600, color: c.textMuted, opacity: 0.6 }}>
+          © {new Date().getFullYear()} SOVR. All rights reserved.
+        </span>
+
+      </div>
+    </footer>
+  );
+}

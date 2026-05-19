@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { T, FILTERS, FMAP } from "./theme";
-import { Navbar, Ticker, Hero } from "./components/Layout";
 import { Card, EditorCard } from "./components/Cards";
-import { VaultGrid, VaultDetail } from "./components/Vault"; // Import Vault komponen
+import { VaultGrid, VaultDetail } from "./components/Vault";
+// 🔥 FIX: Import dirapikan, tidak duplikat, dan LegalPage dimasukkan
+import { Navbar, Ticker, Hero, Footer } from "./components/Layout"; 
+import { LegalPage } from "./components/Legal"; 
 
 // 🔥 TAMBAHAN: Fungsi Slugify untuk mengubah spasi jadi strip di URL
 export const slugify = (text: string) => {
@@ -49,7 +51,7 @@ function EditorSection({ theme, articles }: any) {
     <div style={{ opacity: vis ? 1 : 0, transform: vis ? "translateY(0)" : "translateY(20px)", transition: "all 0.5s cubic-bezier(0.16, 1, 0.3, 1)" }}>
       <div style={{ textAlign: "center", padding: "2.5rem 0", marginBottom: "2rem", borderBottom: `1px solid ${c.border}` }}>
         <h2 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "clamp(2rem, 5vw, 2.5rem)", fontWeight: 800, color: c.text, lineHeight: 1.15, marginBottom: "0.5rem", letterSpacing: "-0.03em", textTransform: "uppercase" }}>Editorial <span style={{ color: c.textMuted }}>Picks</span></h2>
-        <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 500, fontSize: "0.9rem", color: c.textSub, letterSpacing: "0.01em" }}>Analisis dan kurasi mendalam dari tim redaksi SOVR.</p>
+        <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 500, fontSize: "0.9rem", color: c.textSub, letterSpacing: "0.01em" }}>Feed pilihan dari tim redaksi SOVR.</p>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {picks.map((card: any, i: number) => (
@@ -91,6 +93,7 @@ export default function App() {
   // 🔥 PERUBAHAN: State Router berbasis Slug (bukan ID)
   const [currentVaultSlug, setCurrentVaultSlug] = useState<string | null>(null); 
   const [targetArticleSlug, setTargetArticleSlug] = useState<string | null>(null);
+  const [currentLegalSlug, setCurrentLegalSlug] = useState<string | null>(null); // 🔥 TAMBAHAN STATE BARU
   
   const c = T[theme];
 
@@ -150,23 +153,31 @@ export default function App() {
       const path = window.location.pathname;
       const segments = path.split('/').filter(Boolean); // Memecah "/feed/judul" jadi array ["feed", "judul"]
 
-      if (segments[0] === 'vault') {
-        setMainTab('Vault');
-        setCurrentVaultSlug(segments[1] || null); // Mengambil nama AI dari URL
+      if (['about', 'privacy-policy', 'contact'].includes(segments[0])) {
+        setMainTab(segments[0]); // Ini trik agar garis bawah navbar hilang sementara
+        setCurrentLegalSlug(segments[0]);
+        setCurrentVaultSlug(null);
         setTargetArticleSlug(null);
+      } else if (segments[0] === 'vault') {
+        setMainTab('Vault');
+        setCurrentVaultSlug(segments[1] || null); 
+        setTargetArticleSlug(null);
+        setCurrentLegalSlug(null); // Reset
       } else if (segments[0] === 'editor-picks') {
         setMainTab('Pilihan Editor');
-        setTargetArticleSlug(segments[1] || null); // Mengambil judul berita dari URL
+        setTargetArticleSlug(segments[1] || null); 
         setCurrentVaultSlug(null);
+        setCurrentLegalSlug(null); // Reset
       } else if (segments[0] === 'feed') {
         setMainTab('Feed');
-        setTargetArticleSlug(segments[1] || null); // Mengambil judul berita dari URL
+        setTargetArticleSlug(segments[1] || null); 
         setCurrentVaultSlug(null);
+        setCurrentLegalSlug(null); // Reset
       } else {
-        // Halaman Home Normal
         setMainTab('Feed');
         setTargetArticleSlug(null);
         setCurrentVaultSlug(null);
+        setCurrentLegalSlug(null); // Reset
       }
     };
 
@@ -175,9 +186,6 @@ export default function App() {
     return () => window.removeEventListener('popstate', handleLocationChange);
   }, []);
 
-  // =========================================================
-  // 🔥 PERUBAHAN: SISTEM RADAR PELUNCUR (Mencari Artikel via Slug)
-  // =========================================================
   // =========================================================
   // 🔥 PERBAIKAN: SISTEM RADAR PELUNCUR SUPER PRESISI
   // =========================================================
@@ -227,7 +235,6 @@ export default function App() {
     }
   }, [loading, articles, targetArticleSlug]); // 🔥 FIX: Menghapus dependensi mainTab agar radar tidak tereksekusi ganda
   // =========================================================
-  // =========================================================
 
   const filtered = articles.filter(card => filter === "Semua" || card.cat === FMAP[filter]);
   const displayedArticles = filtered.slice(0, visibleCount);
@@ -242,20 +249,22 @@ export default function App() {
           setMainTab(t); 
           setCurrentVaultSlug(null); // Reset slug
           setTargetArticleSlug(null); // Reset slug
-          // window.history.pushState({}, '', window.location.pathname); <-- Dinonaktifkan, dihandle oleh Navbar.tsx
           setVisibleCount(itemsPerPage); 
         }} 
       />
       
-      {/* Sembunyikan Ticker dan Hero jika sedang membuka Halaman Detail Vault */}
-      {!currentVaultSlug && <Ticker theme={theme} tickerData={tickerData} />}
-      {!currentVaultSlug && <Hero theme={theme} tickerData={tickerData} />}
+      {/* 🔥 FIX: Sembunyikan Ticker dan Hero jika sedang membuka Halaman Detail Vault ATAU Halaman Legal */}
+      {!currentVaultSlug && !currentLegalSlug && <Ticker theme={theme} tickerData={tickerData} />}
+      {!currentVaultSlug && !currentLegalSlug && <Hero theme={theme} tickerData={tickerData} />}
       
       <section id="feed" style={{ background: c.bg, minHeight: "60vh", transition: "background 0.4s" }}>
-        <div style={{ maxWidth: currentVaultSlug ? 800 : 680, margin: "0 auto", padding: "4rem 1.5rem 6rem" }}>
+        {/* 🔥 FIX: Kanvas sedikit dilebarkan saat membuka Vault atau Legal */}
+        <div style={{ maxWidth: (currentVaultSlug || currentLegalSlug) ? 800 : 680, margin: "0 auto", padding: "4rem 1.5rem 6rem" }}>
           
-          {currentVaultSlug ? (
-            // 🔥 PERUBAHAN: Mencocokkan tool Vault berdasarkan Slug Nama (Bukan ID)
+          {/* 🔥 FIX: Render Halaman Legal atau Vault berdasarkan URL saat ini */}
+          {currentLegalSlug ? (
+            <LegalPage type={currentLegalSlug} theme={theme} />
+          ) : currentVaultSlug ? (
             <VaultDetail 
               tool={vaultTools.find(t => slugify(t.name) === currentVaultSlug)} 
               allTools={vaultTools} 
@@ -300,6 +309,9 @@ export default function App() {
           )}
         </div>
       </section>
+
+      {/* 🔥 FIX: Tambahkan Footer di paling bawah struktur */}
+      <Footer theme={theme} />
     </>
   );
 }
