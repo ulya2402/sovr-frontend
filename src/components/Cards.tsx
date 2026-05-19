@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { toPng } from "html-to-image";
 import { T } from "../theme";
+import { slugify } from "../App"; // 🔥 FIX: Mengimpor fungsi slugify dari App.tsx
 
 // ─────────────────────────────────────────────
 // SISTEM DESAIN — satu sumber kebenaran
@@ -78,7 +79,8 @@ export function Card({ card, theme, idx }: any) {
 
   const handleCopyLink = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const link = `${window.location.origin}/?id=${card.id}`;
+    // 🔥 FIX: Menggunakan URL Slug yang cantik untuk Feed
+    const link = `${window.location.origin}/feed/${slugify(card.title)}`;
     navigator.clipboard.writeText(link).then(() => alert(`Link disalin!\n${link}`));
     setShowShare(false);
   };
@@ -331,7 +333,8 @@ export function EditorCard({ card, theme, idx }: any) {
 
   const handleCopyLink = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const link = `${window.location.origin}/?id=${card.id}`;
+    // 🔥 FIX: Menggunakan URL Slug yang cantik untuk Editor Picks
+    const link = `${window.location.origin}/editor-picks/${slugify(card.title)}`;
     navigator.clipboard.writeText(link).then(() => alert(`Link disalin!\n${link}`));
     setShowShare(false);
   };

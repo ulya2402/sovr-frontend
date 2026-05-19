@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { T } from "../theme";
+import { slugify } from "../App";
 
 const MR = (extra?: React.CSSProperties): React.CSSProperties => ({
   fontFamily: "'Manrope', sans-serif",
@@ -84,8 +85,9 @@ export function VaultGrid({ tools, theme }: any) {
     ? tools 
     : tools?.filter((t: any) => t.category?.toLowerCase() === activeCategory.toLowerCase());
 
-  const handleOpenDetail = (id: string) => {
-    const newUrl = `${window.location.pathname}?vault=${id}`;
+  const handleOpenDetail = (tool: any) => {
+    const slug = slugify(tool.name);
+    const newUrl = `/vault/${slug}`; 
     window.history.pushState({ path: newUrl }, '', newUrl);
     window.dispatchEvent(new Event('popstate'));
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -130,7 +132,8 @@ export function VaultGrid({ tools, theme }: any) {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1.5rem" }}>
           {filteredTools.map((tool: any, i: number) => (
             <div key={tool.id} style={{ animation: `slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${i * 0.05}s both` }}>
-               <VaultCard tool={tool} theme={theme} onClick={() => handleOpenDetail(tool.id)} />
+               {/* 🔥 FIX: Mengirim seluruh data tool, bukan hanya id */}
+               <VaultCard tool={tool} theme={theme} onClick={() => handleOpenDetail(tool)} />
             </div>
           ))}
         </div>
@@ -146,18 +149,34 @@ export function VaultDetail({ tool, allTools, theme }: any) {
   const c = T[theme];
 
   const handleBack = () => {
-    window.history.pushState({}, '', window.location.pathname + '?tab=vault');
+    window.history.pushState({}, '', '/vault'); 
     window.dispatchEvent(new Event('popstate'));
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    
+    setTimeout(() => {
+      const feedEl = document.getElementById("feed");
+      if (feedEl) {
+        const y = feedEl.getBoundingClientRect().top + window.scrollY - 40;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
+    }, 150); // Jeda agar tidak bertabrakan dengan render Hero
   };
 
-  const handleOpenRelated = (id: string) => {
-    const newUrl = `${window.location.pathname}?vault=${id}`;
+  // 🔥 PERBAIKAN: Jeda mulus untuk related tools
+  const handleOpenRelated = (tool: any) => {
+    const slug = slugify(tool.name);
+    const newUrl = `/vault/${slug}`;
     window.history.pushState({ path: newUrl }, '', newUrl);
     window.dispatchEvent(new Event('popstate'));
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    
+    setTimeout(() => {
+      const feedEl = document.getElementById("feed");
+      if (feedEl) {
+        const y = feedEl.getBoundingClientRect().top + window.scrollY - 40;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
+    }, 50);
   };
-
+  
   if (!tool) return null;
 
   const relatedTools = allTools 
@@ -225,7 +244,6 @@ export function VaultDetail({ tool, allTools, theme }: any) {
         ))}
       </div>
 
-      {/* 🔥 PERBAIKAN AESTHETIC GEN Z: INTERACTIVE MODULAR SUMMARY 🔥 */}
       <div style={{ marginTop: "1rem" }}>
         <h3 style={MR({ fontSize: "0.8rem", fontWeight: 800, color: c.textMuted, textTransform: "uppercase", letterSpacing: "0.15em", margin: "0 0 1.25rem 0", display: "flex", alignItems: "center", gap: 8 })}>
           <i className="ri-magic-line" style={{ color: c.accent, fontSize: "1.1rem" }} /> Key Features
@@ -245,7 +263,6 @@ export function VaultDetail({ tool, allTools, theme }: any) {
                 boxShadow: "0 2px 10px rgba(0,0,0,0.01)"
               }}
               onMouseEnter={e => {
-                // Animasi Hover: Modul Terdorong + Ikon Membesar
                 e.currentTarget.style.borderColor = c.accent;
                 e.currentTarget.style.transform = "translateX(6px)";
                 e.currentTarget.style.boxShadow = `0 8px 20px ${theme === 'dark' ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.05)'}`;
@@ -271,7 +288,6 @@ export function VaultDetail({ tool, allTools, theme }: any) {
         </div>
       </div>
 
-      {/* RELATED TOOLS */}
       {relatedTools.length > 0 && (
         <div style={{ marginTop: "5rem", paddingTop: "3.5rem", borderTop: `1px dashed ${c.border}` }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: "2rem" }}>
@@ -284,7 +300,8 @@ export function VaultDetail({ tool, allTools, theme }: any) {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1.5rem" }}>
             {relatedTools.map((rTool: any, i: number) => (
               <div key={rTool.id} style={{ animation: `fadeIn 0.5s ease ${i * 0.1}s both` }}>
-                <VaultCard tool={rTool} theme={theme} onClick={() => handleOpenRelated(rTool.id)} />
+                {/* 🔥 FIX: Mengirim seluruh data tool, bukan hanya id */}
+                <VaultCard tool={rTool} theme={theme} onClick={() => handleOpenRelated(rTool)} />
               </div>
             ))}
           </div>

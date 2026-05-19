@@ -4,6 +4,11 @@ import { Navbar, Ticker, Hero } from "./components/Layout";
 import { Card, EditorCard } from "./components/Cards";
 import { VaultGrid, VaultDetail } from "./components/Vault"; // Import Vault komponen
 
+// 🔥 TAMBAHAN: Fungsi Slugify untuk mengubah spasi jadi strip di URL
+export const slugify = (text: string) => {
+  return text ? text.toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
+};
+
 function formatTime(createdAt: string, publishedDate: string) {
   if (!createdAt) return publishedDate;
   try {
@@ -47,7 +52,11 @@ function EditorSection({ theme, articles }: any) {
         <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 500, fontSize: "0.9rem", color: c.textSub, letterSpacing: "0.01em" }}>Analisis dan kurasi mendalam dari tim redaksi SOVR.</p>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {picks.map((card: any, i: number) => <EditorCard key={card.id} card={card} theme={theme} idx={i} />)}
+        {picks.map((card: any, i: number) => (
+          <div id={`article-${card.id}`} key={card.id}>
+            <EditorCard card={card} theme={theme} idx={i} />
+          </div>
+        ))}
       </div>
       <div style={{ textAlign: "center", marginTop: "3rem", paddingTop: "2rem", borderTop: `1px solid ${c.border}` }}>
         <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.2em", color: c.textMuted, textTransform: "uppercase" }}>End of Curation</span>
@@ -72,14 +81,16 @@ export default function App() {
   const [filter, setFilter] = useState("Semua");
   const [mainTab, setMainTab] = useState("Feed");
   const [articles, setArticles] = useState<any[]>([]);
-  const [vaultTools, setVaultTools] = useState<any[]>([]); // 🌟 STATE BARU: Vault Data
+  const [vaultTools, setVaultTools] = useState<any[]>([]); 
   const [tickerData, setTickerData] = useState<any>(null); 
   const [loading, setLoading] = useState(true);
   
   const [visibleCount, setVisibleCount] = useState(10);
   const itemsPerPage = 10;
   
-  const [currentVaultId, setCurrentVaultId] = useState<string | null>(null); // 🌟 STATE BARU: Router Vault
+  // 🔥 PERUBAHAN: State Router berbasis Slug (bukan ID)
+  const [currentVaultSlug, setCurrentVaultSlug] = useState<string | null>(null); 
+  const [targetArticleSlug, setTargetArticleSlug] = useState<string | null>(null);
   
   const c = T[theme];
 
@@ -124,7 +135,6 @@ export default function App() {
       }).catch(() => { setLoading(false); });
   }, []);
 
-  // 🌟 API BARU: Mengambil Data Vault
   useEffect(() => {
     fetch("https://backend-sovr.botgampang123.workers.dev/api/vault")
       .then(res => res.json())
@@ -132,18 +142,31 @@ export default function App() {
       .catch(() => {});
   }, []);
 
-  // 🌟 ROUTER BARU: Membaca perubahan URL untuk Halaman Khusus Vault (SEO)
+  // =========================================================
+  // 🔥 PERUBAHAN: ROUTER MESIN SEO (Membaca Path URL)
+  // =========================================================
   useEffect(() => {
     const handleLocationChange = () => {
-      const params = new URLSearchParams(window.location.search);
-      const vaultId = params.get("vault");
-      const tabParam = params.get("tab");
+      const path = window.location.pathname;
+      const segments = path.split('/').filter(Boolean); // Memecah "/feed/judul" jadi array ["feed", "judul"]
 
-      if (vaultId) {
-        setCurrentVaultId(vaultId);
+      if (segments[0] === 'vault') {
+        setMainTab('Vault');
+        setCurrentVaultSlug(segments[1] || null); // Mengambil nama AI dari URL
+        setTargetArticleSlug(null);
+      } else if (segments[0] === 'editor-picks') {
+        setMainTab('Pilihan Editor');
+        setTargetArticleSlug(segments[1] || null); // Mengambil judul berita dari URL
+        setCurrentVaultSlug(null);
+      } else if (segments[0] === 'feed') {
+        setMainTab('Feed');
+        setTargetArticleSlug(segments[1] || null); // Mengambil judul berita dari URL
+        setCurrentVaultSlug(null);
       } else {
-        setCurrentVaultId(null);
-        if (tabParam === "vault") setMainTab("Vault");
+        // Halaman Home Normal
+        setMainTab('Feed');
+        setTargetArticleSlug(null);
+        setCurrentVaultSlug(null);
       }
     };
 
@@ -152,55 +175,58 @@ export default function App() {
     return () => window.removeEventListener('popstate', handleLocationChange);
   }, []);
 
-
   // =========================================================
-  // 🔥 PERUBAHAN UTAMA: SISTEM RADAR PELUNCUR (ANTI-GAGAL) 🔥
+  // 🔥 PERUBAHAN: SISTEM RADAR PELUNCUR (Mencari Artikel via Slug)
+  // =========================================================
+  // =========================================================
+  // 🔥 PERBAIKAN: SISTEM RADAR PELUNCUR SUPER PRESISI
   // =========================================================
   useEffect(() => {
-    if (!loading && articles.length > 0) {
-      const params = new URLSearchParams(window.location.search);
-      const articleId = params.get("id");
+    if (!loading && articles.length > 0 && targetArticleSlug) {
+      const targetArticle = articles.find(a => slugify(a.title) === targetArticleSlug);
       
-      if (articleId) {
-        const targetArticle = articles.find(a => a.id.toString() === articleId);
-        
-        if (targetArticle) {
-          // 1. Arahkan Tab ke tempat yang benar
-          if (targetArticle.featured) {
-            setMainTab("Pilihan Editor");
-          } else {
-            setMainTab("Feed");
-            setFilter("Semua");
-            const articleIndex = articles.findIndex(a => a.id.toString() === articleId);
-            if (articleIndex >= visibleCount) {
-              setVisibleCount(articleIndex + 5); 
-            }
+      if (targetArticle) {
+        // 1. Arahkan Tab secara otomatis
+        if (targetArticle.featured) {
+          setMainTab("Pilihan Editor");
+        } else {
+          setMainTab("Feed");
+          setFilter("Semua");
+          const articleIndex = articles.findIndex(a => a.id === targetArticle.id);
+          if (articleIndex >= visibleCount) {
+            setVisibleCount(articleIndex + 5); 
           }
+        }
 
-          // 2. Aktifkan Radar Pencari Elemen!
-          let radarCount = 0;
-          const radar = setInterval(() => {
-            const element = document.getElementById(`article-${articleId}`);
-            if (element) {
-              // Jika kotak berita ketemu di layar, hentikan radar dan meluncur!
-              clearInterval(radar);
+        // 2. Radar Pencari Elemen (Mencari hingga 5 detik)
+        let radarCount = 0;
+        const radar = setInterval(() => {
+          const element = document.getElementById(`article-${targetArticle.id}`);
+          if (element) {
+            clearInterval(radar); // Matikan radar jika ketemu
+            
+            // 🔥 FIX: Beri jeda 400ms agar animasi UI selesai terender, baru meluncur!
+            setTimeout(() => {
               const y = element.getBoundingClientRect().top + window.scrollY - 100;
               window.scrollTo({ top: y, behavior: "smooth" });
-              
-              // Bersihkan link setelah berhasil mendarat
-              window.history.replaceState({}, document.title, window.location.pathname);
-            }
-            
-            // Keamanan: Hentikan radar jika sudah mencari lebih dari 2 detik (20x) agar tidak error
-            radarCount++;
-            if (radarCount > 20) {
-              clearInterval(radar);
-            }
-          }, 100); // Radar berputar mencari setiap 0.1 detik
-        }
+            }, 400);
+
+            // Bersihkan slug agar efek ini tidak terpanggil berulang kali
+            setTargetArticleSlug(null); 
+          }
+          
+          radarCount++;
+          if (radarCount > 50) { 
+            clearInterval(radar); 
+            setTargetArticleSlug(null); // Menyerah setelah 5 detik
+          }
+        }, 100); 
+      } else {
+        setTargetArticleSlug(null);
       }
     }
-  }, [loading, articles]); 
+  }, [loading, articles, targetArticleSlug]); // 🔥 FIX: Menghapus dependensi mainTab agar radar tidak tereksekusi ganda
+  // =========================================================
   // =========================================================
 
   const filtered = articles.filter(card => filter === "Semua" || card.cat === FMAP[filter]);
@@ -212,36 +238,32 @@ export default function App() {
       <Navbar 
         theme={theme} setTheme={setTheme} 
         filter={filter} setFilter={(f: any) => { setFilter(f); setVisibleCount(itemsPerPage); }} 
-        // 🌟 UPDATE: Modifikasi reset URL saat ganti tab Navbar agar bersih
         mainTab={mainTab} setMainTab={(t: any) => { 
           setMainTab(t); 
-          setCurrentVaultId(null);
-          window.history.pushState({}, '', window.location.pathname);
+          setCurrentVaultSlug(null); // Reset slug
+          setTargetArticleSlug(null); // Reset slug
+          // window.history.pushState({}, '', window.location.pathname); <-- Dinonaktifkan, dihandle oleh Navbar.tsx
           setVisibleCount(itemsPerPage); 
         }} 
       />
       
-      {/* 🌟 UPDATE: Sembunyikan Ticker dan Hero jika sedang membuka Halaman Detail Vault */}
-      {!currentVaultId && <Ticker theme={theme} tickerData={tickerData} />}
-      {!currentVaultId && <Hero theme={theme} tickerData={tickerData} />}
+      {/* Sembunyikan Ticker dan Hero jika sedang membuka Halaman Detail Vault */}
+      {!currentVaultSlug && <Ticker theme={theme} tickerData={tickerData} />}
+      {!currentVaultSlug && <Hero theme={theme} tickerData={tickerData} />}
       
       <section id="feed" style={{ background: c.bg, minHeight: "60vh", transition: "background 0.4s" }}>
-        {/* 🌟 UPDATE: Lebar kanvas diubah sedikit jika membuka halaman khusus Vault */}
-        <div style={{ maxWidth: currentVaultId ? 800 : 680, margin: "0 auto", padding: "4rem 1.5rem 6rem" }}>
+        <div style={{ maxWidth: currentVaultSlug ? 800 : 680, margin: "0 auto", padding: "4rem 1.5rem 6rem" }}>
           
-          {/* 🌟 UPDATE: LOGIKA ROUTER TAMPILAN */}
-          {currentVaultId ? (
-            // 1. Tampilkan Halaman SEO Detail Tool AI
+          {currentVaultSlug ? (
+            // 🔥 PERUBAHAN: Mencocokkan tool Vault berdasarkan Slug Nama (Bukan ID)
             <VaultDetail 
-              tool={vaultTools.find(t => t.id.toString() === currentVaultId)} 
+              tool={vaultTools.find(t => slugify(t.name) === currentVaultSlug)} 
               allTools={vaultTools} 
               theme={theme} 
             />
           ) : mainTab === "Vault" ? (
-            // 2. Tampilkan Galeri Vault Grid
             <VaultGrid tools={vaultTools} theme={theme} />
           ) : mainTab === "Feed" ? (
-            // 3. Tampilkan Feed Berita Biasa (Persis seperti aslinya)
             <>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
                 <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.75rem", fontWeight: 800, letterSpacing: "0.1em", color: c.text, textTransform: "uppercase" }}>Live Feed</span>
@@ -274,7 +296,6 @@ export default function App() {
               )}
             </>
           ) : (
-            // 4. Tampilkan Pilihan Editor
             <EditorSection theme={theme} articles={articles} />
           )}
         </div>

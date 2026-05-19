@@ -109,8 +109,16 @@ export function Ticker({ theme, tickerData }: any) {
 export function Navbar({ theme, setTheme, mainTab, setMainTab }: any) {
   const c = T[theme];
   
-  // PERBAIKAN LOGIKA: Semua tab sekarang langsung meluncur ke area konten murni
-  const scrollToFeed = () => {
+  const handleTabClick = (tabName: string) => {
+    let newPath = "/";
+    if (tabName === "Feed") newPath = "/feed";
+    if (tabName === "Pilihan Editor") newPath = "/editor-picks";
+    if (tabName === "Vault") newPath = "/vault";
+
+    window.history.pushState({}, '', newPath);
+    window.dispatchEvent(new Event('popstate'));
+    
+    // Langsung tembak ke area konten bawah, tidak ada pengecualian untuk Vault!
     const feedEl = document.getElementById("feed");
     if (feedEl) {
       const y = feedEl.getBoundingClientRect().top + window.scrollY - 40;
@@ -121,34 +129,18 @@ export function Navbar({ theme, setTheme, mainTab, setMainTab }: any) {
   return (
     <nav className="nav-container" style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 1.25rem", background: c.glass, backdropFilter: "blur(20px)", borderBottom: `1px solid ${c.border}` }}>
       
-      {/* 1. KIRI (Logo) */}
       <div style={{ flexShrink: 0, display: "flex", alignItems: "center", width: 70 }}>
-        <a href="#" style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.15rem", fontWeight: 800, letterSpacing: "-0.02em", color: c.text, textDecoration: "none" }}>SOVR<span style={{ color: c.accent }}>.</span></a>
+        {/* Logo diklik akan kembali ke root (/) */}
+        <a href="/" onClick={(e) => { e.preventDefault(); handleTabClick("Feed"); }} style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.15rem", fontWeight: 800, letterSpacing: "-0.02em", color: c.text, textDecoration: "none" }}>SOVR<span style={{ color: c.accent }}>.</span></a>
       </div>
       
-      {/* 2. TENGAH (Menu Utama Murni) */}
       <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center", gap: "2px" }}>
         {["Feed", "Pilihan Editor", "Vault"].map(tab => (
           <button 
             key={tab} 
-            onClick={() => { 
-              setMainTab(tab); 
-              scrollToFeed(); // <-- SEKARANG LANGSUNG MELUNCUR KE KONTEN SAMA RATA
-            }} 
+            onClick={() => handleTabClick(tab)} // <-- PANGGIL FUNGSI SEO DI SINI
             style={{ 
-              fontFamily: "'Manrope', sans-serif", 
-              fontSize: "clamp(0.55rem, 2.5vw, 0.65rem)", 
-              fontWeight: 700, 
-              letterSpacing: "0.05em", 
-              textTransform: "uppercase", 
-              color: mainTab === tab ? c.accent : c.textMuted, 
-              background: "transparent", 
-              border: "none", 
-              padding: "0.4rem 0.5rem", 
-              cursor: "pointer", 
-              transition: "color 0.2s", 
-              position: "relative", 
-              whiteSpace: "nowrap" 
+              fontFamily: "'Manrope', sans-serif", fontSize: "clamp(0.55rem, 2.5vw, 0.65rem)", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: mainTab === tab ? c.accent : c.textMuted, background: "transparent", border: "none", padding: "0.4rem 0.5rem", cursor: "pointer", transition: "color 0.2s", position: "relative", whiteSpace: "nowrap" 
             }}
           >
             {tab}
@@ -157,11 +149,10 @@ export function Navbar({ theme, setTheme, mainTab, setMainTab }: any) {
         ))}
       </div>
 
-      {/* 3. KANAN (Live & Tema) */}
       <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, width: 70 }}>
         <div className="live-text" style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "'Manrope', sans-serif", fontSize: "0.55rem", fontWeight: 700, letterSpacing: "0.1em", color: c.accent }}>
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: c.accent, display: "inline-block", animation: "blink 2s ease infinite" }} />
-          LIVE
+          <span style={{ display: "none" }} className="mobile-show">LIVE</span>
         </div>
         <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} style={{ background: "transparent", border: `1px solid ${c.border}`, borderRadius: 6, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: c.accent, fontSize: "0.9rem", transition: "all 0.2s" }}>
           <i className={theme === "dark" ? "ri-sun-fill" : "ri-moon-fill"} />
