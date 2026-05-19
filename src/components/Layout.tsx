@@ -106,7 +106,7 @@ export function Ticker({ theme, tickerData }: any) {
   );
 }
 
-export function Navbar({ theme, setTheme, mainTab, setMainTab }: any) {
+export function Navbar({ theme, setTheme, mainTab }: any) {
   const c = T[theme];
   
   const handleTabClick = (tabName: string) => {
