@@ -106,6 +106,8 @@ export function Ticker({ theme, tickerData }: any) {
   );
 }
 
+// --- AWAL PERUBAHAN 2: src/components/Layout.tsx ---
+// --- AWAL PERUBAHAN: src/components/Layout.tsx ---
 export function Navbar({ theme, setTheme, mainTab }: any) {
   const c = T[theme];
   
@@ -114,23 +116,30 @@ export function Navbar({ theme, setTheme, mainTab }: any) {
     if (tabName === "Feed") newPath = "/feed";
     if (tabName === "Pilihan Editor") newPath = "/editor-picks";
     if (tabName === "Vault") newPath = "/vault";
+    if (tabName === "Perspectives") newPath = "/perspectives";
 
     window.history.pushState({}, '', newPath);
     window.dispatchEvent(new Event('popstate'));
     
-    // Langsung tembak ke area konten bawah, tidak ada pengecualian untuk Vault!
-    const feedEl = document.getElementById("feed");
-    if (feedEl) {
-      const y = feedEl.getBoundingClientRect().top + window.scrollY - 40;
-      window.scrollTo({ top: y, behavior: "smooth" });
-    }
+    setTimeout(() => {
+      if (tabName === "Perspectives") {
+        // Halaman Perspectives eksklusif: Langsung diam di paling atas layar
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        // Feed, Editor Picks, dan Vault: Scroll turun sedikit melewati Hero
+        const feedEl = document.getElementById("feed");
+        if (feedEl) {
+          const y = feedEl.getBoundingClientRect().top + window.scrollY - 40;
+          window.scrollTo({ top: y, behavior: "smooth" });
+        }
+      }
+    }, 50);
   };
 
   return (
     <nav className="nav-container" style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 1.25rem", background: c.glass, backdropFilter: "blur(20px)", borderBottom: `1px solid ${c.border}` }}>
       
       <div style={{ flexShrink: 0, display: "flex", alignItems: "center", width: 70 }}>
-        {/* Logo diklik akan kembali ke root (/) */}
         <a href="/" onClick={(e) => { e.preventDefault(); handleTabClick("Feed"); }} style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.15rem", fontWeight: 800, letterSpacing: "-0.02em", color: c.text, textDecoration: "none" }}>SOVR<span style={{ color: c.accent }}>.</span></a>
       </div>
       
@@ -138,7 +147,7 @@ export function Navbar({ theme, setTheme, mainTab }: any) {
         {["Feed", "Pilihan Editor", "Vault"].map(tab => (
           <button 
             key={tab} 
-            onClick={() => handleTabClick(tab)} // <-- PANGGIL FUNGSI SEO DI SINI
+            onClick={() => handleTabClick(tab)}
             style={{ 
               fontFamily: "'Manrope', sans-serif", fontSize: "clamp(0.55rem, 2.5vw, 0.65rem)", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: mainTab === tab ? c.accent : c.textMuted, background: "transparent", border: "none", padding: "0.4rem 0.5rem", cursor: "pointer", transition: "color 0.2s", position: "relative", whiteSpace: "nowrap" 
             }}
@@ -149,11 +158,24 @@ export function Navbar({ theme, setTheme, mainTab }: any) {
         ))}
       </div>
 
-      <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, width: 70 }}>
+      <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 14, width: 90 }}>
         <div className="live-text" style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "'Manrope', sans-serif", fontSize: "0.55rem", fontWeight: 700, letterSpacing: "0.1em", color: c.accent }}>
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: c.accent, display: "inline-block", animation: "blink 2s ease infinite" }} />
           <span style={{ display: "none" }} className="mobile-show">LIVE</span>
         </div>
+        
+        <button 
+          onClick={() => handleTabClick("Perspectives")} 
+          style={{ background: "transparent", border: `1px solid ${mainTab === "Perspectives" ? c.accent : c.border}`, borderRadius: 6, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: mainTab === "Perspectives" ? c.accent : c.textMuted, transition: "all 0.2s" }} 
+          title="Perspectives (Blog)"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+  <path d="M12 4C7 4 2.73 7.11 1 11.5 2.73 15.89 7 19 12 19s9.27-3.11 11-7.5C21.27 7.11 17 4 12 4zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
+</svg>
+
+
+        </button>
+
         <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} style={{ background: "transparent", border: `1px solid ${c.border}`, borderRadius: 6, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: c.accent, fontSize: "0.9rem", transition: "all 0.2s" }}>
           <i className={theme === "dark" ? "ri-sun-fill" : "ri-moon-fill"} />
         </button>
@@ -162,6 +184,7 @@ export function Navbar({ theme, setTheme, mainTab }: any) {
     </nav>
   );
 }
+// --- BATAS PERUBAHAN ---
 
 export function Footer({ theme }: { theme: string }) {
   const c = T[theme];

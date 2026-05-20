@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { T, FILTERS, FMAP } from "./theme";
+// --- AWAL PERUBAHAN: src/App.tsx (Baris Import Atas) ---
 import { Card, EditorCard } from "./components/Cards";
+import { PerspectiveCard, PerspectiveReader } from "./components/Perspective";
+// --- BATAS PERUBAHAN ---
 import { VaultGrid, VaultDetail } from "./components/Vault";
-// 🔥 FIX: Import dirapikan, tidak duplikat, dan LegalPage dimasukkan
 import { Navbar, Ticker, Hero, Footer } from "./components/Layout"; 
 import { LegalPage } from "./components/Legal"; 
 
@@ -76,9 +78,7 @@ export default function App() {
     return "light"; 
   });
 
-  useEffect(() => {
-    localStorage.setItem('sovr_theme', theme);
-  }, [theme]);
+  useEffect(() => { localStorage.setItem('sovr_theme', theme); }, [theme]);
 
   const [filter, setFilter] = useState("Semua");
   const [mainTab, setMainTab] = useState("Feed");
@@ -90,18 +90,26 @@ export default function App() {
   const [visibleCount, setVisibleCount] = useState(10);
   const itemsPerPage = 10;
   
-  // 🔥 PERUBAHAN: State Router berbasis Slug (bukan ID)
+  // State Router URL
   const [currentVaultSlug, setCurrentVaultSlug] = useState<string | null>(null); 
   const [targetArticleSlug, setTargetArticleSlug] = useState<string | null>(null);
-  const [currentLegalSlug, setCurrentLegalSlug] = useState<string | null>(null); // 🔥 TAMBAHAN STATE BARU
+  const [currentLegalSlug, setCurrentLegalSlug] = useState<string | null>(null);
   
+  // State Khusus Perspectives
+  const [perspectives, setPerspectives] = useState<any[]>([]);
+  const [pSort, setPSort] = useState("latest"); 
+  const [pCat, setPCat] = useState("Semua");
+  const [currentPerspectiveSlug, setCurrentPerspectiveSlug] = useState<string | null>(null);
+  const [activePerspective, setActivePerspective] = useState<any>(null);
+
   const c = T[theme];
 
+  // Fetch Dasar
   useEffect(() => {
     fetch("https://backend-sovr.botgampang123.workers.dev/api/ticker")
-      .then(res => res.json())
-      .then(data => setTickerData(data))
-      .catch(err => console.error("Gagal ambil harga", err));
+      .then(res => res.json()).then(data => setTickerData(data)).catch(() => {});
+    fetch("https://backend-sovr.botgampang123.workers.dev/api/vault")
+      .then(res => res.json()).then(data => setVaultTools(data)).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -121,63 +129,67 @@ export default function App() {
           } catch (urlError) {}
 
           return {
-            id: item.id,
-            tag: item.tag || "Insight",
-            cat: item.category || "market",
-            featured: item.featured === 1 || item.featured === "1" || item.featured === true || String(item.featured).toLowerCase() === "true", 
-            icon: item.source_logo || "ri-newspaper-line",
-            title: item.title || "Untitled",
-            body: item.body || "",
-            author: item.author || "Admin",
+            id: item.id, tag: item.tag || "Insight", cat: item.category || "market",
+            featured: item.featured === 1 || String(item.featured).toLowerCase() === "true", 
+            icon: item.source_logo || "ri-newspaper-line", title: item.title || "Untitled",
+            body: item.body || "", author: item.author || "Admin",
             time: formatTime(item.created_at, item.published_date),
             source: { name: cleanName, domain: cleanName, url: item.source_url || "#", logo: item.source_logo || "ri-newspaper-line", publishDate: item.published_date }
           };
         });
-        setArticles(mappedData);
-        setLoading(false);
+        setArticles(mappedData); setLoading(false);
       }).catch(() => { setLoading(false); });
   }, []);
 
+  // Fetch API Khusus Perspectives (Top/Latest/Category)
   useEffect(() => {
-    fetch("https://backend-sovr.botgampang123.workers.dev/api/vault")
+    let url = `https://backend-sovr.botgampang123.workers.dev/api/perspectives?sort=${pSort}`;
+    if (pCat !== "Semua") url += `&category=${FMAP[pCat] || pCat.toLowerCase()}`;
+    
+    fetch(url)
       .then(res => res.json())
-      .then(data => setVaultTools(data))
+      .then(data => setPerspectives(Array.isArray(data) ? data : []))
       .catch(() => {});
-  }, []);
+  }, [pSort, pCat]);
 
-  // =========================================================
-  // 🔥 PERUBAHAN: ROUTER MESIN SEO (Membaca Path URL)
-  // =========================================================
+  // Reader Halaman Penuh + Tambah View
+  useEffect(() => {
+    if (currentPerspectiveSlug && perspectives.length > 0) {
+      const found = perspectives.find(p => slugify(p.title) === currentPerspectiveSlug);
+      if (found) {
+         fetch(`https://backend-sovr.botgampang123.workers.dev/api/perspectives?id=${found.id}`)
+           .then(res => res.json())
+           .then(data => setActivePerspective(data))
+           .catch(() => setActivePerspective(found)); 
+      }
+    } else {
+      setActivePerspective(null);
+    }
+  }, [currentPerspectiveSlug, perspectives]);
+
+  // URL Router / Mesin State
   useEffect(() => {
     const handleLocationChange = () => {
       const path = window.location.pathname;
-      const segments = path.split('/').filter(Boolean); // Memecah "/feed/judul" jadi array ["feed", "judul"]
+      const segments = path.split('/').filter(Boolean);
+
+      const resetAll = () => {
+        setCurrentVaultSlug(null); setTargetArticleSlug(null);
+        setCurrentLegalSlug(null); setCurrentPerspectiveSlug(null);
+      };
 
       if (['about', 'privacy-policy', 'contact'].includes(segments[0])) {
-        setMainTab(segments[0]); // Ini trik agar garis bawah navbar hilang sementara
-        setCurrentLegalSlug(segments[0]);
-        setCurrentVaultSlug(null);
-        setTargetArticleSlug(null);
+        resetAll(); setMainTab(segments[0]); setCurrentLegalSlug(segments[0]);
       } else if (segments[0] === 'vault') {
-        setMainTab('Vault');
-        setCurrentVaultSlug(segments[1] || null); 
-        setTargetArticleSlug(null);
-        setCurrentLegalSlug(null); // Reset
+        resetAll(); setMainTab('Vault'); setCurrentVaultSlug(segments[1] || null); 
+      } else if (segments[0] === 'perspectives') {
+        resetAll(); setMainTab('Perspectives'); setCurrentPerspectiveSlug(segments[1] || null);
       } else if (segments[0] === 'editor-picks') {
-        setMainTab('Pilihan Editor');
-        setTargetArticleSlug(segments[1] || null); 
-        setCurrentVaultSlug(null);
-        setCurrentLegalSlug(null); // Reset
+        resetAll(); setMainTab('Pilihan Editor'); setTargetArticleSlug(segments[1] || null); 
       } else if (segments[0] === 'feed') {
-        setMainTab('Feed');
-        setTargetArticleSlug(segments[1] || null); 
-        setCurrentVaultSlug(null);
-        setCurrentLegalSlug(null); // Reset
+        resetAll(); setMainTab('Feed'); setTargetArticleSlug(segments[1] || null); 
       } else {
-        setMainTab('Feed');
-        setTargetArticleSlug(null);
-        setCurrentVaultSlug(null);
-        setCurrentLegalSlug(null); // Reset
+        resetAll(); setMainTab('Feed');
       }
     };
 
@@ -186,90 +198,103 @@ export default function App() {
     return () => window.removeEventListener('popstate', handleLocationChange);
   }, []);
 
-  // =========================================================
-  // 🔥 PERBAIKAN: SISTEM RADAR PELUNCUR SUPER PRESISI
-  // =========================================================
   useEffect(() => {
     if (!loading && articles.length > 0 && targetArticleSlug) {
       const targetArticle = articles.find(a => slugify(a.title) === targetArticleSlug);
-      
       if (targetArticle) {
-        // 1. Arahkan Tab secara otomatis
-        if (targetArticle.featured) {
-          setMainTab("Pilihan Editor");
-        } else {
-          setMainTab("Feed");
-          setFilter("Semua");
+        if (targetArticle.featured) { setMainTab("Pilihan Editor"); } 
+        else {
+          setMainTab("Feed"); setFilter("Semua");
           const articleIndex = articles.findIndex(a => a.id === targetArticle.id);
-          if (articleIndex >= visibleCount) {
-            setVisibleCount(articleIndex + 5); 
-          }
+          if (articleIndex >= visibleCount) setVisibleCount(articleIndex + 5); 
         }
 
-        // 2. Radar Pencari Elemen (Mencari hingga 5 detik)
         let radarCount = 0;
         const radar = setInterval(() => {
           const element = document.getElementById(`article-${targetArticle.id}`);
           if (element) {
-            clearInterval(radar); // Matikan radar jika ketemu
-            
-            // 🔥 FIX: Beri jeda 400ms agar animasi UI selesai terender, baru meluncur!
-            setTimeout(() => {
-              const y = element.getBoundingClientRect().top + window.scrollY - 100;
-              window.scrollTo({ top: y, behavior: "smooth" });
-            }, 400);
-
-            // Bersihkan slug agar efek ini tidak terpanggil berulang kali
+            clearInterval(radar); 
+            setTimeout(() => { window.scrollTo({ top: element.getBoundingClientRect().top + window.scrollY - 100, behavior: "smooth" }); }, 400);
             setTargetArticleSlug(null); 
           }
-          
-          radarCount++;
-          if (radarCount > 50) { 
-            clearInterval(radar); 
-            setTargetArticleSlug(null); // Menyerah setelah 5 detik
-          }
+          if (++radarCount > 50) { clearInterval(radar); setTargetArticleSlug(null); }
         }, 100); 
-      } else {
-        setTargetArticleSlug(null);
-      }
+      } else { setTargetArticleSlug(null); }
     }
-  }, [loading, articles, targetArticleSlug]); // 🔥 FIX: Menghapus dependensi mainTab agar radar tidak tereksekusi ganda
-  // =========================================================
+  }, [loading, articles, targetArticleSlug]); 
 
   const filtered = articles.filter(card => filter === "Semua" || card.cat === FMAP[filter]);
   const displayedArticles = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
 
+  // --- AWAL PERUBAHAN ---
   return (
-    <>
-      <Navbar 
-        theme={theme} setTheme={setTheme} 
-        filter={filter} setFilter={(f: any) => { setFilter(f); setVisibleCount(itemsPerPage); }} 
-        mainTab={mainTab} setMainTab={(t: any) => { 
-          setMainTab(t); 
-          setCurrentVaultSlug(null); // Reset slug
-          setTargetArticleSlug(null); // Reset slug
-          setVisibleCount(itemsPerPage); 
-        }} 
-      />
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: c.bg }}>
+      <Navbar theme={theme} setTheme={setTheme} mainTab={mainTab} />
       
-      {/* 🔥 FIX: Sembunyikan Ticker dan Hero jika sedang membuka Halaman Detail Vault ATAU Halaman Legal */}
-      {!currentVaultSlug && !currentLegalSlug && <Ticker theme={theme} tickerData={tickerData} />}
-      {!currentVaultSlug && !currentLegalSlug && <Hero theme={theme} tickerData={tickerData} />}
+      {mainTab !== "Perspectives" && !currentVaultSlug && !currentLegalSlug && !currentPerspectiveSlug && <Ticker theme={theme} tickerData={tickerData} />}
+      {mainTab !== "Perspectives" && !currentVaultSlug && !currentLegalSlug && !currentPerspectiveSlug && <Hero theme={theme} tickerData={tickerData} />}
       
-      <section id="feed" style={{ background: c.bg, minHeight: "60vh", transition: "background 0.4s" }}>
-        {/* 🔥 FIX: Kanvas sedikit dilebarkan saat membuka Vault atau Legal */}
-        <div style={{ maxWidth: (currentVaultSlug || currentLegalSlug) ? 800 : 680, margin: "0 auto", padding: "4rem 1.5rem 6rem" }}>
+      {/* PERHATIKAN: minHeight dihapus dan diganti dengan flex: 1 */}
+      <section id="feed" style={{ background: c.bg, flex: 1, transition: "background 0.4s" }}>
+        {/* Kanvas diperlebar jika membuka Reader atau Vault */}
+        <div style={{ maxWidth: (currentVaultSlug || currentLegalSlug || currentPerspectiveSlug) ? 800 : 680, margin: "0 auto", padding: "4rem 1.5rem 6rem" }}>
           
-          {/* 🔥 FIX: Render Halaman Legal atau Vault berdasarkan URL saat ini */}
           {currentLegalSlug ? (
             <LegalPage type={currentLegalSlug} theme={theme} />
-          ) : currentVaultSlug ? (
-            <VaultDetail 
-              tool={vaultTools.find(t => slugify(t.name) === currentVaultSlug)} 
-              allTools={vaultTools} 
+          ) : currentPerspectiveSlug && activePerspective ? (
+            <PerspectiveReader 
+              article={activePerspective} 
+              allArticles={perspectives} 
               theme={theme} 
-            />
+              onBack={() => {
+                window.history.pushState({}, '', '/perspectives');
+                window.dispatchEvent(new Event('popstate'));
+              }}
+              onNavigate={(title: string) => {
+                window.history.pushState({}, '', `/perspectives/${slugify(title)}`);
+                window.dispatchEvent(new Event('popstate'));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }} 
+            />          
+          ) : currentVaultSlug ? (
+            <VaultDetail tool={vaultTools.find(t => slugify(t.name) === currentVaultSlug)} allTools={vaultTools} theme={theme} />
+          ) : mainTab === "Perspectives" ? (
+            <>
+              {/* Header Khusus Perspectives */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
+                <div>
+                  <h2 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.8rem", color: c.text, fontWeight: 800, margin: "0 0 0.5rem 0", letterSpacing: "-0.02em" }}>Perspectives.</h2>
+                  <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.8rem", color: c.textSub, margin: 0, fontWeight: 500 }}>Membahas teknologi dari sudut pandang manusia</p>
+                </div>
+                <div style={{ display: "flex", gap: 8, background: c.accentDim, padding: 4, borderRadius: 8 }}>
+                  <button onClick={() => setPSort("latest")} style={{ fontFamily: "'Manrope', sans-serif", border: "none", background: pSort === "latest" ? c.accent : "transparent", color: pSort === "latest" ? c.bg : c.textMuted, fontSize: "0.65rem", fontWeight: 700, padding: "0.4rem 0.8rem", borderRadius: 6, cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", transition: "all 0.2s" }}>Latest</button>
+                  <button onClick={() => setPSort("top")} style={{ fontFamily: "'Manrope', sans-serif", border: "none", background: pSort === "top" ? c.accent : "transparent", color: pSort === "top" ? c.bg : c.textMuted, fontSize: "0.65rem", fontWeight: 700, padding: "0.4rem 0.8rem", borderRadius: 6, cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", transition: "all 0.2s" }}>Top Readers</button>
+                </div>
+              </div>
+
+              {/* Filter Kategori Perspectives */}
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: "2.5rem" }}>
+                {FILTERS.map(f => <button key={f} onClick={() => setPCat(f)} style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: pCat === f ? c.bg : c.textMuted, background: pCat === f ? c.accent : "transparent", border: `1px solid ${pCat === f ? c.accent : c.border}`, borderRadius: 100, padding: "0.35rem 1rem", cursor: "pointer", transition: "all 0.2s" }}>{f}</button>)}
+              </div>
+
+              {/* Grid Perspektif (Sistem CSS Auto-Responsive) */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "2rem" }}>
+                {perspectives.length === 0 ? (
+                  <p style={{ color: c.textMuted, gridColumn: "1/-1", textAlign: "center", fontFamily: "'Manrope', sans-serif", fontWeight: 600 }}>Belum ada artikel Perspectives untuk kategori ini.</p>
+                ) : (
+                  perspectives.map((art) => (
+                    <PerspectiveCard 
+                      key={art.id} article={art} theme={theme} 
+                      onClick={() => {
+                        window.history.pushState({}, '', `/perspectives/${slugify(art.title)}`);
+                        window.dispatchEvent(new Event('popstate'));
+                      }} 
+                    />
+                  ))
+                )}
+              </div>
+            </>
           ) : mainTab === "Vault" ? (
             <VaultGrid tools={vaultTools} theme={theme} />
           ) : mainTab === "Feed" ? (
@@ -310,8 +335,8 @@ export default function App() {
         </div>
       </section>
 
-      {/* 🔥 FIX: Tambahkan Footer di paling bawah struktur */}
       <Footer theme={theme} />
-    </>
+    </div>
   );
 }
+// --- BATAS PERUBAHAN ---

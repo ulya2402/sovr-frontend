@@ -311,7 +311,7 @@ export function Card({ card, theme, idx }: any) {
                       <i className="ri-link" style={{ color: c.textMuted, fontSize: "0.95rem" }} /> Copy Link
                     </button>
                     <button onClick={handleDownloadImage} style={{ display: "flex", alignItems: "center", gap: 9, width: "100%", padding: "0.55rem 0.75rem", background: "transparent", border: "none", fontFamily: "'Manrope', sans-serif", fontSize: "0.73rem", fontWeight: 700, color: c.text, cursor: "pointer", borderRadius: 6, textAlign: "left" }} onMouseEnter={e => e.currentTarget.style.background = c.accentDim} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                      <i className="ri-instagram-line" style={{ color: c.textMuted, fontSize: "0.95rem" }} /> Download
+                      <i className="ri-download-2-line" style={{ color: c.textMuted, fontSize: "0.95rem" }} /> Download
                     </button>
                   </div>
                 )}
@@ -330,6 +330,7 @@ export function Card({ card, theme, idx }: any) {
   );
 }
 
+// --- AWAL PERUBAHAN 1: src/components/Cards.tsx ---
 
 // ══════════════════════════════════════════════
 // 2. KARTU PILIHAN EDITOR
@@ -358,12 +359,11 @@ export function EditorCard({ card, theme, idx }: any) {
   }, [isExpanded]);
 
   const handleCopyLink = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    // 🔥 FIX: Copy Link menggunakan Toast Elegan (Bukan Alert)
+    e.stopPropagation(); // Mencegah kartu terbuka saat tombol diklik
     const link = `${window.location.origin}/editor-picks/${slugify(card.title)}`;
     navigator.clipboard.writeText(link).then(() => {
-      setToast(true);
-      setTimeout(() => setToast(false), 2500);
+      setToast(true); // Mengaktifkan efek centang hijau
+      setTimeout(() => setToast(false), 2000); // Kembali ke ikon unduh setelah 2 detik
     });
     setShowShare(false);
   };
@@ -598,10 +598,10 @@ export function EditorCard({ card, theme, idx }: any) {
                 {showShare && (
                   <div style={{ position: "absolute", bottom: "calc(100% + 6px)", right: 0, background: c.bg, border: `1px solid ${c.border}`, borderRadius: 8, padding: "0.35rem", display: "flex", flexDirection: "column", gap: 2, minWidth: 168, boxShadow: theme === "dark" ? "0 8px 24px rgba(0,0,0,0.5)" : "0 8px 24px rgba(0,0,0,0.09)", zIndex: 20, animation: "slideUp 0.18s ease forwards", transformOrigin: "bottom right" }}>
                     <button onClick={handleCopyLink} style={{ display: "flex", alignItems: "center", gap: 9, width: "100%", padding: "0.55rem 0.75rem", background: "transparent", border: "none", fontFamily: "'Manrope', sans-serif", fontSize: "0.73rem", fontWeight: 700, color: c.text, cursor: "pointer", borderRadius: 6, textAlign: "left" }} onMouseEnter={e => e.currentTarget.style.background = c.accentDim} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                      <i className="ri-link" style={{ color: c.textMuted, fontSize: "0.95rem" }} /> Copy Link Berita
+                      <i className="ri-link" style={{ color: c.textMuted, fontSize: "0.95rem" }} /> Copy Link
                     </button>
                     <button onClick={handleDownloadImage} style={{ display: "flex", alignItems: "center", gap: 9, width: "100%", padding: "0.55rem 0.75rem", background: "transparent", border: "none", fontFamily: "'Manrope', sans-serif", fontSize: "0.73rem", fontWeight: 700, color: c.text, cursor: "pointer", borderRadius: 6, textAlign: "left" }} onMouseEnter={e => e.currentTarget.style.background = c.accentDim} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                      <i className="ri-instagram-line" style={{ color: c.textMuted, fontSize: "0.95rem" }} /> Download (IG/WA)
+                      <i className="ri-download-2-line" style={{ color: c.textMuted, fontSize: "0.95rem" }} /> Download
                     </button>
                   </div>
                 )}
@@ -617,5 +617,7 @@ export function EditorCard({ card, theme, idx }: any) {
         </div>
       </div>
     </>
+  
   );
+
 }

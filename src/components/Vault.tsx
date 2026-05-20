@@ -100,7 +100,7 @@ export function VaultGrid({ tools, theme }: any) {
           Vault<span style={{ color: c.accent }}>.</span>
         </h2>
         <p style={MR({ fontWeight: 600, fontSize: "0.95rem", color: c.textSub, opacity: 0.6, marginTop: "0.5rem" })}>
-          Temukan berbagai aplikasi AI terbaik yang sudah kami pilih khusus untuk kamu.
+          Temukan berbagai aplikasi AI terbaik yang sudah kami pilih khusus untuk anda.
         </p>
       </div>
 
