@@ -218,7 +218,7 @@ function InlineNewsletter({ theme }: any) {
           }}
           onClick={handleJoinClick}
         >
-          Masuk ke Channel <i className="ri-arrow-right-line" style={{ fontSize: "0.95rem" }} />
+          Gabung Sekarang <i className="ri-arrow-right-line" style={{ fontSize: "0.95rem" }} />
         </button>
       </div>
 
