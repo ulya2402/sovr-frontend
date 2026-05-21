@@ -39,7 +39,6 @@ const GAP_NORMAL  = 12;   // px, jarak antar section saat di layar
 const GAP_CAPTURE = 16;   // px, sedikit lebih longgar saat jadi gambar
 
 // Padding card
-const PAD_NORMAL  = "1.5rem 1.6rem";
 const PAD_CAPTURE = "2.2rem 2.6rem";
 
 // Lebar gambar download
