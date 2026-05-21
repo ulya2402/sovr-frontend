@@ -54,16 +54,11 @@ const MR = (extra?: React.CSSProperties): React.CSSProperties => ({
 });
 
 
-// ══════════════════════════════════════════════
-// 1. KARTU FEED
-// ══════════════════════════════════════════════
 export function Card({ card, theme, idx }: any) {
   const c = T[theme];
   const [isExpanded, setIsExpanded]   = useState(true);
   const [showShare,  setShowShare]    = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
-  
-  // 🔥 TAMBAHAN: State untuk Toast Notifikasi
   const [toast, setToast] = useState(false);
 
   const cardRef    = useRef<HTMLElement>(null);
@@ -82,11 +77,10 @@ export function Card({ card, theme, idx }: any) {
 
   const handleCopyLink = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // 🔥 FIX: Copy Link menggunakan Toast Elegan (Bukan Alert)
     const link = `${window.location.origin}/feed/${slugify(card.title)}`;
     navigator.clipboard.writeText(link).then(() => {
       setToast(true);
-      setTimeout(() => setToast(false), 2500); // Otomatis hilang dalam 2.5 detik
+      setTimeout(() => setToast(false), 2500);
     });
     setShowShare(false);
   };
@@ -111,6 +105,8 @@ export function Card({ card, theme, idx }: any) {
           width: `${CAPTURE_WIDTH}px`,
           minWidth: `${CAPTURE_WIDTH}px`,
           boxSizing: "border-box",
+          boxShadow: "none",
+          border: "none"
         },
         filter: (node: Element) =>
           !(node instanceof HTMLElement && node.classList.contains("no-print")),
@@ -132,7 +128,6 @@ export function Card({ card, theme, idx }: any) {
 
   return (
     <>
-      {/* 🔥 TAMBAHAN: Komponen Toast Kapsul Melayang */}
       {toast && (
         <div style={{
           position: "fixed", bottom: 40, left: "50%", transform: "translateX(-50%)",
@@ -154,57 +149,46 @@ export function Card({ card, theme, idx }: any) {
           flexDirection: "column",
           gap: isCapturing ? GAP_CAPTURE : GAP_NORMAL,
           background: c.bg,
-          border: `1px solid ${isExpanded || isCapturing ? c.accent : c.border}`,
-          borderRadius: 12,
+          border: "none",
+          borderRadius: 24,
           position: "relative",
           width: isCapturing ? `${CAPTURE_WIDTH}px` : "100%",
           minWidth: isCapturing ? `${CAPTURE_WIDTH}px` : "auto",
-          padding: isCapturing ? PAD_CAPTURE : PAD_NORMAL,
+          padding: isCapturing ? PAD_CAPTURE : "1.8rem",
           boxSizing: "border-box",
-          transition: isCapturing ? "none" : "border-color 0.25s, transform 0.25s",
+          boxShadow: isCapturing ? "none" : (theme === 'dark' ? "0 10px 30px -5px rgba(0,0,0,0.3)" : "0 10px 30px -5px rgba(0,0,0,0.04)"),
+          transition: isCapturing ? "none" : "transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s cubic-bezier(0.16,1,0.3,1)",
           animation: isCapturing ? "none" : `slideUp 0.6s cubic-bezier(0.16,1,0.3,1) ${idx * 0.08}s both`,
         }}
-        onMouseEnter={(e) => { if (!isExpanded && !isCapturing) { e.currentTarget.style.borderColor = c.accent; e.currentTarget.style.transform = "translateY(-2px)"; } }}
-        onMouseLeave={(e) => { if (!isCapturing) { e.currentTarget.style.borderColor = isExpanded ? c.accent : c.border; e.currentTarget.style.transform = "translateY(0)"; } }}
+        onMouseEnter={(e) => { if (!isCapturing) { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = (theme === 'dark' ? "0 20px 40px -5px rgba(0,0,0,0.4)" : "0 20px 40px -5px rgba(0,0,0,0.06)"); } }}
+        onMouseLeave={(e) => { if (!isCapturing) { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = (theme === 'dark' ? "0 10px 30px -5px rgba(0,0,0,0.3)" : "0 10px 30px -5px rgba(0,0,0,0.04)"); } }}
       >
 
-        {/* ── SECTION 1: Header — avatar + nama + waktu ── */}
         <div
-          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: isCapturing ? "default" : "pointer" }}
+          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: isCapturing ? "default" : "pointer", marginBottom: "-0.2rem" }}
           onClick={() => !isCapturing && setIsExpanded(!isExpanded)}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{
-              display: "flex", alignItems: "center", justifyContent: "center",
-              width: 26, height: 26, borderRadius: 6,
-              background: c.accentDim, color: c.accent, flexShrink: 0,
-            }}>
-              <i className="ri-pencil-line" style={{ fontSize: "0.85rem" }} />
-            </div>
-            <span style={MR({ fontSize: F.authorLabel, fontWeight: 700, color: c.accent, textTransform: "uppercase", letterSpacing: "0.07em" })}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={MR({ fontSize: F.authorLabel, fontWeight: 800, color: c.accent, textTransform: "uppercase", letterSpacing: "0.1em" })}>
               {card.author}
             </span>
           </div>
-          <span style={MR({ fontSize: F.timeLabel, fontWeight: 500, color: c.textMuted })}>
+          <span style={MR({ fontSize: F.timeLabel, fontWeight: 600, color: c.textMuted, letterSpacing: "0.02em", opacity: 0.8 })}>
             {card.time}
           </span>
         </div>
 
-        {/* ── Divider tipis antara header dan konten ── */}
-        <div style={{ height: 1, background: c.border, opacity: 0.6, flexShrink: 0 }} />
-
-        {/* ── SECTION 2: Judul + Isi ── */}
         <div
-          style={{ cursor: isCapturing ? "default" : "pointer" }}
+          style={{ cursor: isCapturing ? "default" : "pointer", display: "flex", flexDirection: "column", gap: 10 }}
           onClick={() => !isCapturing && setIsExpanded(!isExpanded)}
         >
           <h3 style={MR({
             fontSize: F.titleFeed,
-            fontWeight: 700,
+            fontWeight: 800,
             color: c.text,
-            lineHeight: 1.38,
-            margin: "0 0 0.5rem 0",
-            letterSpacing: "-0.01em",
+            lineHeight: 1.3,
+            margin: "0",
+            letterSpacing: "-0.025em",
           })}>
             {card.title}
           </h3>
@@ -218,17 +202,19 @@ export function Card({ card, theme, idx }: any) {
             <p ref={contentRef} style={MR({
               fontSize: F.body,
               color: c.textSub,
-              lineHeight: 1.68,
+              lineHeight: 1.75,
               fontWeight: 400,
               whiteSpace: "pre-wrap",
               margin: 0,
+              letterSpacing: "0.01em",
+              opacity: 0.9
             })}>
               {card.body}
             </p>
             {!isCapturing && (
               <div className="no-print" style={{
-                position: "absolute", bottom: 0, left: 0, right: 0, height: "2.5rem",
-                background: `linear-gradient(to bottom, transparent, ${c.bg})`,
+                position: "absolute", bottom: 0, left: 0, right: 0, height: "4rem",
+                background: `linear-gradient(to bottom, transparent, ${c.bg} 90%)`,
                 opacity: isExpanded ? 0 : 1,
                 transition: "opacity 0.35s ease",
                 pointerEvents: "none",
@@ -237,23 +223,24 @@ export function Card({ card, theme, idx }: any) {
           </div>
         </div>
 
-        {/* ── SECTION 3: Kotak Sumber ── */}
         {(isExpanded || isCapturing) && (
           <div style={{
-            padding: isCapturing ? "0.9rem 1.1rem" : "0.85rem 1rem",
+            padding: "1.2rem",
             background: c.accentDim,
-            borderRadius: 8,
-            border: `1px dashed ${c.border}`,
+            borderRadius: 14,
+            border: "none",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            gap: 16,
+            marginTop: "0.5rem",
             animation: isCapturing ? "none" : "slideFadeDown 0.35s cubic-bezier(0.16,1,0.3,1) forwards",
           }}>
-            <div>
-              <div style={MR({ fontSize: F.sourceLabel, fontWeight: 700, letterSpacing: "0.1em", color: c.textMuted, textTransform: "uppercase", marginBottom: "0.2rem" })}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              <div style={MR({ fontSize: F.sourceLabel, fontWeight: 700, letterSpacing: "0.08em", color: c.textMuted, textTransform: "uppercase", opacity: 0.8 })}>
                 Sumber Referensi
               </div>
-              <div style={MR({ fontSize: F.sourceName, fontWeight: 800, color: c.accent })}>
+              <div style={MR({ fontSize: F.sourceName, fontWeight: 800, color: c.text })}>
                 {card.source.name}
               </div>
             </div>
@@ -262,34 +249,38 @@ export function Card({ card, theme, idx }: any) {
                 ? <a
                     href={card.source.url} target="_blank" rel="noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    style={MR({ fontSize: "0.63rem", fontWeight: 700, color: c.bg, background: c.accent, padding: "0.45rem 0.9rem", borderRadius: 6, textDecoration: "none" })}
+                    style={MR({ fontSize: "0.68rem", fontWeight: 800, color: c.bg, background: c.accent, padding: "0.6rem 1.2rem", borderRadius: 8, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 5, transition: "opacity 0.2s" })}
+                    onMouseEnter={e => e.currentTarget.style.opacity = "0.9"}
+                    onMouseLeave={e => e.currentTarget.style.opacity = "1"}
                   >
-                    Buka Link <i className="ri-external-link-line" />
+                    Buka <i className="ri-external-link-line" style={{ fontSize: '0.8rem' }} />
                   </a>
-                : <span style={MR({ fontSize: "0.6rem", fontWeight: 600, color: c.textMuted })}>Internal SOVR</span>
+                : <span style={MR({ fontSize: "0.65rem", fontWeight: 600, color: c.textMuted })}>Internal SOVR</span>
             )}
           </div>
         )}
 
-        {/* ── SECTION 4: Footer — tag + tombol / watermark ── */}
         <div style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          paddingTop: "0.6rem",
-          borderTop: `1px solid ${c.border}`,
+          paddingTop: "1.2rem",
+          marginTop: "0.5rem",
+          position: "relative"
         }}>
+          {!isCapturing && <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: c.border, opacity: 0.4 }} />}
+          
           <span style={MR({
             fontSize: F.tagLabel,
             fontWeight: 700,
-            letterSpacing: "0.08em",
-            color: c.textMuted,
+            letterSpacing: "0.05em",
+            color: c.accent,
             textTransform: "uppercase",
             background: c.accentDim,
-            padding: "0.28rem 0.7rem",
-            borderRadius: 4,
+            padding: "0.3rem 0.7rem",
+            borderRadius: 6,
           })}>
-            {card.tag}
+            #{card.tag}
           </span>
 
           {isCapturing ? (
@@ -297,30 +288,30 @@ export function Card({ card, theme, idx }: any) {
               {domain}
             </span>
           ) : (
-            <div className="no-print" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div className="no-print" style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{ position: "relative" }} onMouseLeave={() => setShowShare(false)}>
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowShare(!showShare); }}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, borderRadius: "50%", background: showShare ? c.accent : "transparent", border: `1px solid ${showShare ? c.accent : c.border}`, color: showShare ? c.bg : c.textMuted, cursor: "pointer", transition: "all 0.2s" }}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, borderRadius: 10, background: showShare ? c.accent : c.accentDim, border: "none", color: showShare ? c.bg : c.accent, cursor: "pointer", transition: "all 0.2s" }}
                 >
-                  <i className="ri-share-forward-line" style={{ fontSize: "0.95rem" }} />
+                  <i className="ri-share-forward-line" style={{ fontSize: "1.1rem" }} />
                 </button>
                 {showShare && (
-                  <div style={{ position: "absolute", bottom: "calc(100% + 6px)", right: 0, background: c.bg, border: `1px solid ${c.border}`, borderRadius: 8, padding: "0.35rem", display: "flex", flexDirection: "column", gap: 2, minWidth: 168, boxShadow: theme === "dark" ? "0 8px 24px rgba(0,0,0,0.5)" : "0 8px 24px rgba(0,0,0,0.09)", zIndex: 20, animation: "slideUp 0.18s ease forwards", transformOrigin: "bottom right" }}>
-                    <button onClick={handleCopyLink} style={{ display: "flex", alignItems: "center", gap: 9, width: "100%", padding: "0.55rem 0.75rem", background: "transparent", border: "none", fontFamily: "'Manrope', sans-serif", fontSize: "0.73rem", fontWeight: 700, color: c.text, cursor: "pointer", borderRadius: 6, textAlign: "left" }} onMouseEnter={e => e.currentTarget.style.background = c.accentDim} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                      <i className="ri-link" style={{ color: c.textMuted, fontSize: "0.95rem" }} /> Copy Link
+                  <div style={{ position: "absolute", bottom: "calc(100% + 10px)", right: 0, background: c.bg, border: `1px solid ${c.border}`, borderRadius: 14, padding: "0.45rem", display: "flex", flexDirection: "column", gap: 2, minWidth: 170, boxShadow: theme === "dark" ? "0 15px 40px rgba(0,0,0,0.5)" : "0 15px 40px rgba(0,0,0,0.1)", zIndex: 20, animation: "slideUp 0.18s ease forwards", transformOrigin: "bottom right" }}>
+                    <button onClick={handleCopyLink} style={{ display: "flex", alignItems: "center", gap: 9, width: "100%", padding: "0.6rem 0.8rem", background: "transparent", border: "none", fontFamily: "'Manrope', sans-serif", fontSize: "0.78rem", fontWeight: 700, color: c.text, cursor: "pointer", borderRadius: 10, textAlign: "left" }} onMouseEnter={e => e.currentTarget.style.background = c.accentDim} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                      <i className="ri-link" style={{ color: c.accent, fontSize: "1.05rem" }} /> Copy Link
                     </button>
-                    <button onClick={handleDownloadImage} style={{ display: "flex", alignItems: "center", gap: 9, width: "100%", padding: "0.55rem 0.75rem", background: "transparent", border: "none", fontFamily: "'Manrope', sans-serif", fontSize: "0.73rem", fontWeight: 700, color: c.text, cursor: "pointer", borderRadius: 6, textAlign: "left" }} onMouseEnter={e => e.currentTarget.style.background = c.accentDim} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                      <i className="ri-download-2-line" style={{ color: c.textMuted, fontSize: "0.95rem" }} /> Download
+                    <button onClick={handleDownloadImage} style={{ display: "flex", alignItems: "center", gap: 9, width: "100%", padding: "0.6rem 0.8rem", background: "transparent", border: "none", fontFamily: "'Manrope', sans-serif", fontSize: "0.78rem", fontWeight: 700, color: c.text, cursor: "pointer", borderRadius: 10, textAlign: "left" }} onMouseEnter={e => e.currentTarget.style.background = c.accentDim} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                      <i className="ri-download-2-line" style={{ color: c.accent, fontSize: "1.05rem" }} /> Download
                     </button>
                   </div>
                 )}
               </div>
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, height: 30, borderRadius: "50%", background: isExpanded ? c.accent : "transparent", border: `1px solid ${c.border}`, color: isExpanded ? c.bg : c.accent, cursor: "pointer", transition: "all 0.28s cubic-bezier(0.16,1,0.3,1)" }}
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, borderRadius: 10, background: isExpanded ? c.accent : c.accentDim, border: "none", color: isExpanded ? c.bg : c.accent, cursor: "pointer", transition: "all 0.25s cubic-bezier(0.16,1,0.3,1)" }}
               >
-                <i className="ri-arrow-down-s-line" style={{ fontSize: "1.1rem", transform: isExpanded ? "rotate(-180deg)" : "rotate(0)", transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1)" }} />
+                <i className="ri-arrow-down-s-line" style={{ fontSize: "1.2rem", transform: isExpanded ? "rotate(-180deg)" : "rotate(0)", transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1)" }} />
               </button>
             </div>
           )}
