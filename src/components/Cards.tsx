@@ -130,13 +130,17 @@ export function Card({ card, theme, idx }: any) {
       {toast && (
         <div style={{
           position: "fixed", bottom: 40, left: "50%", transform: "translateX(-50%)",
-          background: c.text, color: c.bg, padding: "0.75rem 1.5rem", borderRadius: 100,
+          background: theme === "dark" ? "rgba(255,255,255,0.95)" : "rgba(0,0,0,0.9)", 
+          color: theme === "dark" ? "#000" : "#fff", 
+          padding: "0.8rem 1.6rem", borderRadius: 100,
           display: "flex", alignItems: "center", gap: 10, zIndex: 99999,
           fontFamily: "'Manrope', sans-serif", fontSize: "0.85rem", fontWeight: 700,
-          boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
+          boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
+          backdropFilter: "blur(10px)",
+          WebkitBackdropFilter: "blur(10px)",
           animation: "slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards", pointerEvents: "none"
         }}>
-          <i className="ri-checkbox-circle-fill" style={{ color: c.bg, fontSize: "1.2rem" }} />
+          <i className="ri-checkbox-circle-fill" style={{ fontSize: "1.2rem" }} />
           Link berhasil disalin
         </div>
       )}
@@ -155,12 +159,12 @@ export function Card({ card, theme, idx }: any) {
           minWidth: isCapturing ? `${CAPTURE_WIDTH}px` : "auto",
           padding: isCapturing ? PAD_CAPTURE : "1.8rem",
           boxSizing: "border-box",
-          boxShadow: isCapturing ? "none" : (theme === 'dark' ? "0 10px 30px -5px rgba(0,0,0,0.3)" : "0 10px 30px -5px rgba(0,0,0,0.04)"),
-          transition: isCapturing ? "none" : "transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s cubic-bezier(0.16,1,0.3,1)",
+          boxShadow: isCapturing ? "none" : (theme === 'dark' ? "0 12px 40px -12px rgba(0,0,0,0.5)" : "0 20px 48px -12px rgba(0,0,0,0.08), 0 4px 14px -4px rgba(0,0,0,0.04)"),
+          transition: isCapturing ? "none" : "transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s cubic-bezier(0.16,1,0.3,1)",
           animation: isCapturing ? "none" : `slideUp 0.6s cubic-bezier(0.16,1,0.3,1) ${idx * 0.08}s both`,
         }}
-        onMouseEnter={(e) => { if (!isCapturing) { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = (theme === 'dark' ? "0 20px 40px -5px rgba(0,0,0,0.4)" : "0 20px 40px -5px rgba(0,0,0,0.06)"); } }}
-        onMouseLeave={(e) => { if (!isCapturing) { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = (theme === 'dark' ? "0 10px 30px -5px rgba(0,0,0,0.3)" : "0 10px 30px -5px rgba(0,0,0,0.04)"); } }}
+        onMouseEnter={(e) => { if (!isCapturing) { e.currentTarget.style.transform = "translateY(-6px)"; e.currentTarget.style.boxShadow = (theme === 'dark' ? "0 24px 60px -12px rgba(0,0,0,0.7)" : "0 32px 64px -16px rgba(0,0,0,0.14), 0 8px 24px -10px rgba(0,0,0,0.06)"); } }}
+        onMouseLeave={(e) => { if (!isCapturing) { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = (theme === 'dark' ? "0 12px 40px -12px rgba(0,0,0,0.5)" : "0 20px 48px -12px rgba(0,0,0,0.08), 0 4px 14px -4px rgba(0,0,0,0.04)"); } }}
       >
 
         <div
@@ -319,7 +323,6 @@ export function Card({ card, theme, idx }: any) {
     </>
   );
 }
-
 // --- AWAL PERUBAHAN 1: src/components/Cards.tsx ---
 
 // ══════════════════════════════════════════════
