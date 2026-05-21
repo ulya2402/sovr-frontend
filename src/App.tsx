@@ -1,4 +1,4 @@
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect } from "react";
 import { T, FILTERS, FMAP } from "./theme";
 import { Card, EditorCard } from "./components/Cards";
 import { PerspectiveCard, PerspectiveReader } from "./components/Perspective";
@@ -51,11 +51,11 @@ function InlinePerspectives({ perspectives, theme }: any) {
   const others = latest.slice(1);
 
   return (
-    <div style={{ margin: "0.5rem 0", padding: "1.5rem 0", borderTop: `1px solid ${c.border}`, borderBottom: `1px solid ${c.border}` }}>
+    <div style={{ margin: "1rem 0", padding: 0 }}>
       <div style={{ marginBottom: "0.25rem" }}>
         <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.6rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: c.accent }}>Baca Juga</span>
       </div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "1.25rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.75rem" }}>
         <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.2rem", fontWeight: 800, color: c.text, margin: 0, letterSpacing: "-0.02em" }}>
           Deep Dives<span style={{ color: c.accent }}>.</span>
         </h3>
@@ -140,103 +140,15 @@ function InlinePerspectives({ perspectives, theme }: any) {
             ))}
           </div>
         )}
-
       </div>
     </div>
   );
 }
-// --- BATAS PERUBAHAN ---
-// --- BATAS PERUBAHAN ---// --- BATAS PERUBAHAN ---
 
 // --- AWAL PERUBAHAN: Komponen InlineVaultPromo Minimalis Premium ---
 // --- AWAL PERUBAHAN: Komponen InlineVaultPromo Minimalis Premium ---
 // --- AWAL PERUBAHAN: Komponen InlineVaultPromo Presisi Kompak ---
-function InlineVaultPromo({ tools, theme }: any) {
-  const c = T[theme];
-  const featured = tools.slice(0, 4);
-  if (featured.length === 0) return null;
 
-  return (
-    <div style={{ margin: "0.4rem 0", padding: "1.25rem 0", borderTop: `1px solid ${c.border}`, borderBottom: `1px solid ${c.border}` }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "1rem" }}>
-        <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.15rem", fontWeight: 800, color: c.text, margin: 0, letterSpacing: "-0.02em" }}>
-          Editor's Choice <span style={{ color: c.accent }}>.</span>
-        </h3>
-        <span style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: c.textMuted }}>Vault Promo</span>
-      </div>
-      
-      <div style={{ 
-        display: "grid", 
-        gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))", 
-        gap: "0.75rem" 
-      }}>
-        {featured.map((tool: any) => (
-          <div 
-            key={tool.id} 
-            onClick={() => {
-              window.history.pushState({}, '', `/vault/${slugify(tool.name)}`);
-              window.dispatchEvent(new Event('popstate'));
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-            style={{
-              background: theme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
-              border: `1px solid ${c.border}`,
-              borderRadius: 14,
-              padding: "0.85rem 1rem",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.85rem",
-              transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)"
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.borderColor = c.accent;
-              e.currentTarget.style.background = theme === 'dark' ? 'rgba(255,255,255,0.05)' : c.bg;
-              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.03)";
-              e.currentTarget.style.transform = "translateY(-2px)";
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.borderColor = c.border;
-              e.currentTarget.style.background = theme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)';
-              e.currentTarget.style.boxShadow = "none";
-              e.currentTarget.style.transform = "translateY(0)";
-            }}
-          >
-            <img 
-              src={tool.logo} 
-              alt={tool.name} 
-              style={{ width: 38, height: 38, borderRadius: 10, border: `1px solid ${c.border}`, objectFit: "cover", flexShrink: 0 }} 
-              onError={(e: any) => { e.target.src = "https://via.placeholder.com/38?text=AI"; }} 
-            />
-            
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <h4 style={{ 
-                fontFamily: "'Manrope', sans-serif", fontSize: "0.9rem", fontWeight: 800, color: c.text, 
-                margin: "0 0 0.1rem 0", letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" 
-              }}>
-                {tool.name}
-              </h4>
-              <p style={{ 
-                fontFamily: "'Manrope', sans-serif", fontSize: "0.7rem", color: c.textSub, fontWeight: 500,
-                margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" 
-              }}>
-                {tool.category} <span style={{ opacity: 0.5, margin: "0 2px" }}>•</span> {tool.pricing}
-              </p>
-            </div>
-
-            <div style={{ flexShrink: 0, width: 24, height: 24, borderRadius: "50%", background: c.accentDim, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <i className="ri-arrow-right-up-line" style={{ color: c.accent, fontSize: "0.8rem" }} />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-// --- BATAS PERUBAHAN ---// --- BATAS PERUBAHAN ---
-// --- BATAS PERUBAHAN ---
-
-// --- AWAL PERUBAHAN ---
 function InlineNewsletter({ theme }: any) {
   const c = T[theme];
   const targetLink = "https://t.me/channel_telegram_anda"; 
@@ -266,11 +178,11 @@ function InlineNewsletter({ theme }: any) {
       </div>
       
       <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.45rem", fontWeight: 800, color: c.text, margin: "0 0 0.5rem 0", letterSpacing: "-0.02em", position: "relative", zIndex: 1 }}>
-        The Alpha <span style={{ color: c.accent }}>Broadcast.</span>
+        Dapatkan <span style={{ color: c.accent }}>Berita Terbaru</span>
       </h3>
       
       <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.85rem", color: c.textSub, margin: 0, lineHeight: 1.6, maxWidth: 380, position: "relative", zIndex: 1 }}>
-        Sinyal real-time, alpha setup, market breakdown harian, dan pembaruan AI tercepat langsung di genggaman Anda.
+        Gabung ke channel telegram kami untuk pembaruan seputar AI dan Kripto.
       </p>
 
       <div style={{ width: "100%", maxWidth: 340, marginTop: "1.5rem", position: "relative", zIndex: 1 }}>
@@ -311,12 +223,201 @@ function InlineNewsletter({ theme }: any) {
       </div>
 
       <span style={{ fontSize: "0.6rem", color: c.textMuted, fontWeight: 600, marginTop: "0.85rem", position: "relative", zIndex: 1 }}>
-        Bergabung dengan komunitas alpha network kami sekarang.
+        Gabung Sekarang.
       </span>
     </div>
   );
 }
 // --- BATAS PERUBAHAN ---
+// --- AWAL PERUBAHAN: Komponen InlineEditorPicks Baru ---
+// --- AWAL PERUBAHAN: Kembalikan EditorSection dan letakkan InlineEditorPicks ---
+
+// 1. Komponen Inline Pilihan Editor (yang muncul disela-sela Feed)
+// --- AWAL PERUBAHAN: Desain Baru Komponen InlineEditorPicks ---
+function InlineEditorPicks({ articles, theme }: any) {
+  const c = T[theme];
+  const picks = articles.slice(0, 3);
+  if (picks.length === 0) return null;
+
+  return (
+    <div style={{ margin: "1rem 0", padding: 0 }}>
+      <div style={{ marginBottom: "0.75rem" }}>
+        <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.6rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: c.accent }}>Kurasi Khusus</span>
+        <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.4rem", fontWeight: 800, color: c.text, margin: "0.2rem 0 0 0", letterSpacing: "-0.02em" }}>
+          Editor's Spotlight.
+        </h3>
+      </div>
+      
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
+        {picks.map((p: any, index: number) => (
+          <div 
+            key={p.id} 
+            onClick={() => {
+              window.history.pushState({}, '', `/feed/${slugify(p.title)}`);
+              window.dispatchEvent(new Event('popstate'));
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            style={{ 
+              background: theme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)', 
+              border: `1px solid ${c.border}`, borderRadius: 16, padding: "1.25rem", 
+              cursor: "pointer", position: "relative", overflow: "hidden",
+              transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)" 
+            }}
+            onMouseEnter={e => { 
+              e.currentTarget.style.borderColor = c.accent; 
+              e.currentTarget.style.transform = "translateY(-4px)";
+            }}
+            onMouseLeave={e => { 
+              e.currentTarget.style.borderColor = c.border; 
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
+          >
+            <div style={{ position: "absolute", top: -10, right: -10, fontSize: "4rem", fontWeight: 900, color: c.textMuted, opacity: 0.1, pointerEvents: "none", fontFamily: "'Manrope', sans-serif" }}>
+              0{index + 1}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "0.75rem", position: "relative", zIndex: 1 }}>
+              <i className={p.icon || "ri-flashlight-fill"} style={{ color: c.accent, fontSize: "0.9rem" }} />
+              <span style={{ fontSize: "0.65rem", fontWeight: 800, color: c.accent, textTransform: "uppercase", letterSpacing: "0.05em" }}>{p.tag}</span>
+            </div>
+            <h4 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.05rem", fontWeight: 800, color: c.text, margin: "0 0 0.5rem 0", lineHeight: 1.4, position: "relative", zIndex: 1 }}>
+              {p.title}
+            </h4>
+            <span style={{ fontSize: "0.7rem", color: c.textSub, fontWeight: 600, display: "block", position: "relative", zIndex: 1 }}>{p.source.name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// 3. Pembaruan InlineVaultPromo
+// --- AWAL PERUBAHAN: Desain Vault Promo Aesthetic & Premium ---
+function InlineVaultPromo({ tools, theme }: any) {
+  const c = T[theme];
+  const featured = tools.slice(0, 4);
+  if (featured.length === 0) return null;
+
+  return (
+    <div style={{ margin: "1rem 0", padding: 0 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "0.75rem" }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.4rem" }}>
+            <i className="ri-box-3-fill" style={{ color: c.accent, fontSize: "0.9rem" }}></i>
+            <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: c.accent }}>The Vault</span>
+          </div>
+          <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.35rem", fontWeight: 800, color: c.text, margin: 0, letterSpacing: "-0.02em" }}>
+            Curated Tools<span style={{ color: c.accent }}>.</span>
+          </h3>
+        </div>
+        <span style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: c.textMuted }}>Featured</span>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1rem" }}>
+        {featured.map((tool: any) => {
+          const isFree = tool.pricing?.toLowerCase().includes('free');
+          
+          return (
+            <div 
+              key={tool.id} 
+              onClick={() => {
+                window.history.pushState({}, '', `/vault/${slugify(tool.name)}`);
+                window.dispatchEvent(new Event('popstate'));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              style={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                padding: "1.25rem",
+                background: theme === 'dark' ? 'rgba(255,255,255,0.015)' : '#ffffff',
+                border: `1px solid ${c.border}`,
+                borderRadius: 16,
+                cursor: "pointer",
+                transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+                overflow: "hidden"
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.borderColor = c.accent;
+                e.currentTarget.style.transform = "translateY(-4px)";
+                e.currentTarget.style.boxShadow = theme === 'dark' ? '0 12px 30px -10px rgba(0,0,0,0.4)' : '0 12px 30px -10px rgba(0,0,0,0.08)';
+                const arrow = e.currentTarget.querySelector('.vault-arrow') as HTMLElement;
+                if (arrow) {
+                  arrow.style.background = c.accent;
+                  arrow.style.color = theme === 'dark' ? '#000000' : '#ffffff';
+                  arrow.style.transform = "rotate(45deg) scale(1.1)";
+                }
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.borderColor = c.border;
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
+                const arrow = e.currentTarget.querySelector('.vault-arrow') as HTMLElement;
+                if (arrow) {
+                  arrow.style.background = c.accentDim;
+                  arrow.style.color = c.accent;
+                  arrow.style.transform = "rotate(0deg) scale(1)";
+                }
+              }}
+            >
+              <div style={{ width: 48, height: 48, borderRadius: 12, border: `1px solid ${c.border}`, overflow: "hidden", flexShrink: 0, marginRight: "1rem", background: c.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <img 
+                  src={tool.logo} alt={tool.name} 
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                  onError={(e: any) => { e.target.src = "https://via.placeholder.com/48?text=AI"; }} 
+                />
+              </div>
+
+              <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <h4 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.05rem", fontWeight: 800, color: c.text, margin: 0, letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {tool.name}
+                  </h4>
+                  <span style={{ fontSize: "0.55rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", padding: "0.15rem 0.4rem", borderRadius: 6, background: isFree ? 'rgba(46, 204, 113, 0.15)' : c.accentDim, color: isFree ? '#2ecc71' : c.accent }}>
+                    {tool.pricing || "Paid"}
+                  </span>
+                </div>
+                <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.75rem", color: c.textSub, fontWeight: 500, margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {tool.category}
+                </p>
+              </div>
+
+              <div 
+                className="vault-arrow"
+                style={{ flexShrink: 0, width: 32, height: 32, borderRadius: "50%", background: c.accentDim, display: "flex", alignItems: "center", justifyContent: "center", color: c.accent, transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }}
+              >
+                <i className="ri-arrow-right-up-line" style={{ fontSize: "1rem" }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SmoothReveal({ children, delay = 0 }: any) {
+  return (
+    <div 
+      style={{ 
+        /* Menggunakan @keyframes murni dari CSS, bukan state React */
+        animation: `smoothFadeUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) both`,
+        animationDelay: `${delay}ms`,
+        willChange: "opacity, transform" // Perintah paksa ke GPU agar tidak lag
+      }}
+    >
+      {/* Inject Keyframes (Browser sangat pintar menangani ini tanpa beban) */}
+      <style>{`
+        @keyframes smoothFadeUp {
+          0% { opacity: 0; transform: translateY(35px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+      {children}
+    </div>
+  );
+}
+// --- BATAS PERUBAHAN ---
+
 function EditorSection({ theme, articles }: any) {
   const c = T[theme];
   const picks = articles.filter((a: any) => a.featured);
@@ -365,7 +466,7 @@ export default function App() {
   const [tickerData, setTickerData] = useState<any>(null); 
   const [loading, setLoading] = useState(true);
   
-  const [visibleCount, setVisibleCount] = useState(10);
+  const [visibleCount, setVisibleCount] = useState(3);
   const itemsPerPage = 10;
   
   // State Router URL
@@ -576,51 +677,107 @@ export default function App() {
           ) : mainTab === "Vault" ? (
             <VaultGrid tools={vaultTools} theme={theme} />
           ) : mainTab === "Feed" ? (
-            <>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
-                <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.75rem", fontWeight: 800, letterSpacing: "0.1em", color: c.text, textTransform: "uppercase" }}>Live Feed</span>
-                <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, color: c.textMuted }}>{filtered.length} entries</span>
-              </div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: "2rem" }}>
-                {FILTERS.map(f => <button key={f} onClick={() => { setFilter(f); setVisibleCount(itemsPerPage); }} style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: filter === f ? c.bg : c.textMuted, background: filter === f ? c.accent : "transparent", border: `1px solid ${filter === f ? c.accent : c.border}`, borderRadius: 100, padding: "0.35rem 1rem", cursor: "pointer", transition: "all 0.2s" }}>{f}</button>)}
-              </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                {loading ? (
-                  <p style={{ color: c.textMuted, textAlign: "center", fontFamily: "'Manrope', sans-serif", fontWeight: 600 }}>Syncing data...</p>
-                ) : displayedArticles.length === 0 ? (
-                  <p style={{ color: c.textMuted, textAlign: "center", fontFamily: "'Manrope', sans-serif", fontWeight: 600 }}>Belum ada artikel untuk kategori ini.</p>
-                ) : (
-                  displayedArticles.map((card, i) => (
-                    <Fragment key={card.id}>
-                      <div id={`article-${card.id}`}>
-                        <Card card={card} theme={theme} idx={i} />
-                      </div>
+              {/* 1. BAGIAN ATAS: Filter & 3 Card Feed Terbaru */}
+              <div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+                  <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.75rem", fontWeight: 800, letterSpacing: "0.1em", color: c.text, textTransform: "uppercase" }}>Live Feed</span>
+                  <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, color: c.textMuted }}>{filtered.length} entries</span>
+                </div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: "2rem" }}>
+                  {FILTERS.map(f => <button key={f} onClick={() => { setFilter(f); setVisibleCount(3); }} style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: filter === f ? c.bg : c.textMuted, background: filter === f ? c.accent : "transparent", border: `1px solid ${filter === f ? c.accent : c.border}`, borderRadius: 100, padding: "0.35rem 1rem", cursor: "pointer", transition: "all 0.2s" }}>{f}</button>)}
+                </div>
+                
+               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  {loading ? (
+                    <p style={{ color: c.textMuted, textAlign: "center", fontFamily: "'Manrope', sans-serif", fontWeight: 600 }}>Syncing data...</p>
+                  ) : displayedArticles.length === 0 ? (
+                    <p style={{ color: c.textMuted, textAlign: "center", fontFamily: "'Manrope', sans-serif", fontWeight: 600 }}>Belum ada card untuk kategori ini.</p>
+                  ) : (
+                    displayedArticles.map((card, i) => {
+                      // 3 Card awal (index 0,1,2) langsung muncul tanpa delay
+                      const isNewBatch = i >= 3;
+                      
+                      // Rumus Anti-Lag: Card baru pertama di tiap klik akan langsung muncul (0ms),
+                      // disusul Card berikutnya dengan jeda 75ms yang sangat rapat dan cepat.
+                      const delayTime = isNewBatch ? ((i - 3) % itemsPerPage) * 75 : 0; 
 
-                      {i === 2 && perspectives.length > 0 && (
-                        <InlinePerspectives perspectives={perspectives} theme={theme} />
-                      )}
-
-                      {i === 4 && vaultTools.some((t: any) => t.featured === 1) && (
-                        <InlineVaultPromo tools={vaultTools.filter((t: any) => t.featured === 1)} theme={theme} />
-                      )}
-
-                      {i === 2 && (
-                        <InlineNewsletter theme={theme} />
-                      )}
-                    </Fragment>
-                  ))
-                )}
+                      return (
+                        <SmoothReveal key={card.id} delay={delayTime}>
+                          <div id={`article-${card.id}`}>
+                            <Card card={card} theme={theme} idx={i} />
+                          </div>
+                        </SmoothReveal>
+                      );
+                    })
+                  )}
+                </div>
               </div>
 
+              {/* 2. TOMBOL PEMBATAS FEED (Gatekeeper) */}
               {hasMore && !loading && (
-                <div style={{ display: "flex", justifyContent: "center", marginTop: "3rem" }}>
-                  <button onClick={() => setVisibleCount(prev => prev + itemsPerPage)} style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: c.text, background: "transparent", border: `1px solid ${c.border}`, borderRadius: 100, padding: "0.75rem 2rem", cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={e => { e.currentTarget.style.borderColor = c.accent; }} onMouseLeave={e => { e.currentTarget.style.borderColor = c.border; }}>
-                    Load More <i className="ri-arrow-down-line" style={{ fontSize: "0.9rem" }} />
+                <div style={{ display: "flex", justifyContent: "center", margin: "2rem 0 1rem 0" }}>
+                  <button 
+                    onClick={() => setVisibleCount(prev => prev === 3 ? 10 : prev + itemsPerPage)} 
+                    style={{ 
+                      display: "flex", alignItems: "center", gap: 8, fontFamily: "'Manrope', sans-serif", 
+                      fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", 
+                      color: visibleCount === 3 ? c.bg : c.text, 
+                      background: visibleCount === 3 ? c.text : "transparent", 
+                      border: `1px solid ${visibleCount === 3 ? c.text : c.border}`, 
+                      borderRadius: 100, padding: "0.75rem 2rem", cursor: "pointer", transition: "all 0.2s" 
+                    }} 
+                    onMouseEnter={e => { 
+                      if(visibleCount !== 3) e.currentTarget.style.borderColor = c.accent; 
+                      else e.currentTarget.style.transform = "translateY(-2px)";
+                    }} 
+                    onMouseLeave={e => { 
+                      if(visibleCount !== 3) e.currentTarget.style.borderColor = c.border; 
+                      else e.currentTarget.style.transform = "translateY(0)";
+                    }}
+                  >
+                    {visibleCount === 3 ? "Tampilkan Feed Lainnya" : "Load More"} <i className="ri-arrow-down-line" style={{ fontSize: "0.9rem" }} />
                   </button>
                 </div>
               )}
-            </>
+
+              {/* 3. BLOK KHUSUS: DEEP DIVES */}
+              {perspectives.length > 0 && (
+                <InlinePerspectives perspectives={perspectives} theme={theme} />
+              )}
+
+              {perspectives.length > 0 && (articles.some((a: any) => a.featured) || vaultTools.some((t: any) => t.featured === 1)) && (
+                <div style={{ display: "flex", justifyContent: "center", margin: "1rem 0" }}>
+                  <div style={{ width: "40px", height: "4px", background: c.border, borderRadius: "2px" }} />
+                </div>
+              )}
+
+              {articles.some((a: any) => a.featured) && (
+                <InlineEditorPicks articles={articles.filter((a: any) => a.featured)} theme={theme} />
+              )}
+
+              {articles.some((a: any) => a.featured) && vaultTools.some((t: any) => t.featured === 1) && (
+                <div style={{ display: "flex", justifyContent: "center", margin: "1rem 0" }}>
+                  <div style={{ width: "40px", height: "4px", background: c.border, borderRadius: "2px" }} />
+                </div>
+              )}
+
+              {vaultTools.some((t: any) => t.featured === 1) && (
+                <InlineVaultPromo tools={vaultTools.filter((t: any) => t.featured === 1)} theme={theme} />
+              )}
+
+              {(perspectives.length > 0 || articles.some((a: any) => a.featured) || vaultTools.some((t: any) => t.featured === 1)) && (
+                <div style={{ display: "flex", justifyContent: "center", margin: "1rem 0" }}>
+                  <div style={{ width: "40px", height: "4px", background: c.border, borderRadius: "2px" }} />
+                </div>
+              )}
+
+              <div style={{ marginTop: "1rem" }}>
+                <InlineNewsletter theme={theme} />
+              </div>
+
+            </div>
           ) : (
             <EditorSection theme={theme} articles={articles} />
           )}
@@ -631,4 +788,5 @@ export default function App() {
     </div>
   );
 }
+// --- BATAS PERUBAHAN ---
 // --- BATAS PERUBAHAN ---

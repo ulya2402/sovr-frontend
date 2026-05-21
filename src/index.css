@@ -26,8 +26,14 @@ body { min-height: 100vh; overflow-x: hidden; transition: background 0.4s; text-
     justify-content: center; 
     margin: 0 0.5rem;
     overflow-x: auto; /* Bisa di-scroll menyamping jika layarnya sangat kecil */
+
+    
   }
   .nav-center::-webkit-scrollbar { display: none; }
   .nav-filters { display: none !important; } /* Sembunyikan filter di navbar saat di HP */
   .live-text { display: none !important; } /* Sembunyikan tulisan LIVE saat di HP */
+
+
+
+  
 }
