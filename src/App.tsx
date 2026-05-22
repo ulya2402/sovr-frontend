@@ -638,42 +638,45 @@ export default function App() {
             />          
           ) : currentVaultSlug ? (
             <VaultDetail tool={vaultTools.find(t => slugify(t.name) === currentVaultSlug)} allTools={vaultTools} theme={theme} />
-          ) : mainTab === "Perspectives" ? (
-            <>
-              {/* Header Khusus Perspectives */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
-                <div>
-                  <h2 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.8rem", color: c.text, fontWeight: 800, margin: "0 0 0.5rem 0", letterSpacing: "-0.02em" }}>Perspectives.</h2>
-                  <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.8rem", color: c.textSub, margin: 0, fontWeight: 500 }}>Membahas teknologi dari sudut pandang manusia</p>
+         ) : mainTab === "Perspectives" ? (
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <SmoothReveal delay={0}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
+                  <div>
+                    <h2 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.8rem", color: c.text, fontWeight: 800, margin: "0 0 0.5rem 0", letterSpacing: "-0.02em" }}>Perspectives.</h2>
+                    <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.8rem", color: c.textSub, margin: 0, fontWeight: 500 }}>Membahas teknologi dari sudut pandang manusia</p>
+                  </div>
+                  <div style={{ display: "flex", gap: 8, background: c.accentDim, padding: 4, borderRadius: 8 }}>
+                    <button onClick={() => setPSort("latest")} style={{ fontFamily: "'Manrope', sans-serif", border: "none", background: pSort === "latest" ? c.accent : "transparent", color: pSort === "latest" ? c.bg : c.textMuted, fontSize: "0.65rem", fontWeight: 700, padding: "0.4rem 0.8rem", borderRadius: 6, cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", transition: "all 0.2s" }}>Latest</button>
+                    <button onClick={() => setPSort("top")} style={{ fontFamily: "'Manrope', sans-serif", border: "none", background: pSort === "top" ? c.accent : "transparent", color: pSort === "top" ? c.bg : c.textMuted, fontSize: "0.65rem", fontWeight: 700, padding: "0.4rem 0.8rem", borderRadius: 6, cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", transition: "all 0.2s" }}>Top Readers</button>
+                  </div>
                 </div>
-                <div style={{ display: "flex", gap: 8, background: c.accentDim, padding: 4, borderRadius: 8 }}>
-                  <button onClick={() => setPSort("latest")} style={{ fontFamily: "'Manrope', sans-serif", border: "none", background: pSort === "latest" ? c.accent : "transparent", color: pSort === "latest" ? c.bg : c.textMuted, fontSize: "0.65rem", fontWeight: 700, padding: "0.4rem 0.8rem", borderRadius: 6, cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", transition: "all 0.2s" }}>Latest</button>
-                  <button onClick={() => setPSort("top")} style={{ fontFamily: "'Manrope', sans-serif", border: "none", background: pSort === "top" ? c.accent : "transparent", color: pSort === "top" ? c.bg : c.textMuted, fontSize: "0.65rem", fontWeight: 700, padding: "0.4rem 0.8rem", borderRadius: 6, cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", transition: "all 0.2s" }}>Top Readers</button>
+              </SmoothReveal>
+
+              <SmoothReveal delay={75}>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: "2.5rem" }}>
+                  {FILTERS.map(f => <button key={f} onClick={() => setPCat(f)} style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: pCat === f ? c.bg : c.textMuted, background: pCat === f ? c.accent : "transparent", border: `1px solid ${pCat === f ? c.accent : c.border}`, borderRadius: 100, padding: "0.35rem 1rem", cursor: "pointer", transition: "all 0.2s" }}>{f}</button>)}
                 </div>
-              </div>
+              </SmoothReveal>
 
-              {/* Filter Kategori Perspectives */}
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: "2.5rem" }}>
-                {FILTERS.map(f => <button key={f} onClick={() => setPCat(f)} style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: pCat === f ? c.bg : c.textMuted, background: pCat === f ? c.accent : "transparent", border: `1px solid ${pCat === f ? c.accent : c.border}`, borderRadius: 100, padding: "0.35rem 1rem", cursor: "pointer", transition: "all 0.2s" }}>{f}</button>)}
-              </div>
-
-              {/* Grid Perspektif (Sistem CSS Auto-Responsive) */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "2rem" }}>
+              <div key={`${pCat}-${pSort}`} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "2rem" }}>
                 {perspectives.length === 0 ? (
                   <p style={{ color: c.textMuted, gridColumn: "1/-1", textAlign: "center", fontFamily: "'Manrope', sans-serif", fontWeight: 600 }}>Belum ada artikel Perspectives untuk kategori ini.</p>
                 ) : (
-                  perspectives.map((art) => (
-                    <PerspectiveCard 
-                      key={art.id} article={art} theme={theme} 
-                      onClick={() => {
-                        window.history.pushState({}, '', `/perspectives/${slugify(art.title)}`);
-                        window.dispatchEvent(new Event('popstate'));
-                      }} 
-                    />
+                  perspectives.map((art, i) => (
+                    <SmoothReveal key={art.id} delay={150 + (i * 75)}>
+                      <PerspectiveCard 
+                        article={art} theme={theme} 
+                        onClick={() => {
+                          window.history.pushState({}, '', `/perspectives/${slugify(art.title)}`);
+                          window.dispatchEvent(new Event('popstate'));
+                        }} 
+                      />
+                    </SmoothReveal>
                   ))
                 )}
               </div>
-            </>
+            </div>
           ) : mainTab === "Vault" ? (
             <VaultGrid tools={vaultTools} theme={theme} />
           ) : mainTab === "Feed" ? (

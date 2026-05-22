@@ -80,8 +80,13 @@ export function PerspectiveReader({ article, allArticles = [], theme, onBack, on
   };
 
   return (
-    <div style={{ animation: "fadeIn 0.5s ease" }}>
+    <div>
       <style>{`
+        @keyframes smoothReveal {
+          0% { opacity: 0; transform: translateY(24px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        
         .p-content { font-family: 'Manrope', sans-serif; font-size: 1.05rem; color: ${c.textSub}; line-height: 1.75; font-weight: 400; }
         .p-content p { margin: 0 0 1.2rem 0; }
         .p-content h2, .p-content h3 { color: ${c.text}; margin: 2rem 0 1rem 0; font-weight: 800; letter-spacing: -0.01em; line-height: 1.3; }
@@ -102,7 +107,7 @@ export function PerspectiveReader({ article, allArticles = [], theme, onBack, on
         .p-content tr:nth-child(even) { background: ${c.bg === "#f7f7f7" ? "rgba(0,0,0,0.015)" : "rgba(255,255,255,0.02)"}; }
       `}</style>
 
-      <div style={{ display: "flex", alignItems: "center", width: "100%", marginBottom: "2rem", paddingTop: "0.2rem" }}>
+      <div style={{ display: "flex", alignItems: "center", width: "100%", marginBottom: "2rem", paddingTop: "0.2rem", animation: "smoothReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards", willChange: "opacity, transform" }}>
         <button
           onClick={onBack}
           style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "transparent", border: "none", color: c.textMuted, fontFamily: "'Manrope', sans-serif", fontSize: "0.72rem", fontWeight: 700, cursor: "pointer", padding: "0.5rem 0", textTransform: "uppercase", letterSpacing: "0.1em", transition: "color 0.2s", lineHeight: 1 }}
@@ -113,7 +118,7 @@ export function PerspectiveReader({ article, allArticles = [], theme, onBack, on
         </button>
       </div>
 
-      <div style={{ marginBottom: "2.5rem", textAlign: "center" }}>
+      <div style={{ marginBottom: "2.5rem", textAlign: "center", opacity: 0, animation: "smoothReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.1s", willChange: "opacity, transform" }}>
         <span style={{ display: "inline-block", background: c.accentDim, color: c.accent, padding: "0.4rem 1rem", borderRadius: 100, fontFamily: "'Manrope', sans-serif", fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "1rem" }}>
           {article.category}
         </span>
@@ -130,19 +135,19 @@ export function PerspectiveReader({ article, allArticles = [], theme, onBack, on
       </div>
 
       {article.image_url && (
-         <div style={{ width: "100%", borderRadius: 16, overflow: "hidden", marginBottom: "1.5rem", border: `1px solid ${c.border}` }}>
+         <div style={{ width: "100%", borderRadius: 16, overflow: "hidden", marginBottom: "1.5rem", border: `1px solid ${c.border}`, opacity: 0, animation: "smoothReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.2s", willChange: "opacity, transform" }}>
            <img src={article.image_url} alt={article.title} style={{ width: "100%", maxHeight: "45vh", objectFit: "cover", display: "block" }} />
          </div>
       )}
 
       <div
         className="p-content"
+        style={{ opacity: 0, animation: "smoothReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.3s", willChange: "opacity, transform" }}
         dangerouslySetInnerHTML={{ __html: formatBody(article.body) }}
       />
 
-      {/* PERBAIKAN 2: Jarak atas dipangkas dari 4rem menjadi 1.5rem (Rapat ke teks akhir) */}
       {relatedArticles.length > 0 && (
-        <div style={{ marginTop: "1.5rem", paddingTop: "1.5rem", borderTop: `1px solid ${c.border}` }}>
+        <div style={{ marginTop: "1.5rem", paddingTop: "1.5rem", borderTop: `1px solid ${c.border}`, opacity: 0, animation: "smoothReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.4s", willChange: "opacity, transform" }}>
           <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.2rem", color: c.text, fontWeight: 800, marginBottom: "1.2rem", letterSpacing: "-0.01em" }}>
             Baca Juga
           </h3>
@@ -159,11 +164,9 @@ export function PerspectiveReader({ article, allArticles = [], theme, onBack, on
         </div>
       )}
 
-      {/* PERBAIKAN 3: Jarak garis akhir dipangkas menjadi 2rem agar pas dan natural */}
-      <div style={{ marginTop: "2rem", paddingTop: "1.5rem", borderTop: `1px solid ${c.border}`, textAlign: "center" }}>
+      <div style={{ marginTop: "2rem", paddingTop: "1.5rem", borderTop: `1px solid ${c.border}`, textAlign: "center", opacity: 0, animation: "smoothReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.5s", willChange: "opacity, transform" }}>
         <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.2em", color: c.textMuted, textTransform: "uppercase" }}>End of Perspective</span>
       </div>
     </div>
   );
 }
-// --- BATAS PERUBAHAN ---
