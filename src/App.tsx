@@ -42,6 +42,7 @@ function formatTime(createdAt: string, publishedDate: string) {
 // --- AWAL PERUBAHAN: Komponen InlinePerspectives Kompak ---
 // --- AWAL PERUBAHAN: Komponen InlinePerspectives ala Every.to ---
 // --- AWAL PERUBAHAN: Komponen InlinePerspectives dengan Eyebrow Text ---
+// --- AWAL PERUBAHAN: Komponen InlinePerspectives ---
 function InlinePerspectives({ perspectives, theme }: any) {
   const c = T[theme];
   const latest = perspectives.slice(0, 3);
@@ -67,7 +68,7 @@ function InlinePerspectives({ perspectives, theme }: any) {
           onClick={() => {
             window.history.pushState({}, '', `/perspectives/${slugify(hero.title)}`);
             window.dispatchEvent(new Event('popstate'));
-            window.scrollTo({ top: 0, behavior: "smooth" });
+            setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 50);
           }}
           style={{ cursor: "pointer", display: "flex", flexDirection: "column", gap: "0.75rem" }}
           onMouseEnter={e => {
@@ -111,7 +112,7 @@ function InlinePerspectives({ perspectives, theme }: any) {
                 onClick={() => {
                   window.history.pushState({}, '', `/perspectives/${slugify(p.title)}`);
                   window.dispatchEvent(new Event('popstate'));
-                  window.scrollTo({ top: 0, behavior: "smooth" });
+                  setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 50);
                 }}
                 style={{ display: "flex", alignItems: "center", gap: "1rem", cursor: "pointer", transition: "opacity 0.2s" }}
                 onMouseEnter={e => { e.currentTarget.style.opacity = "0.7"; }}
@@ -145,9 +146,6 @@ function InlinePerspectives({ perspectives, theme }: any) {
   );
 }
 
-// --- AWAL PERUBAHAN: Komponen InlineVaultPromo Minimalis Premium ---
-// --- AWAL PERUBAHAN: Komponen InlineVaultPromo Minimalis Premium ---
-// --- AWAL PERUBAHAN: Komponen InlineVaultPromo Presisi Kompak ---
 
 function InlineNewsletter({ theme }: any) {
   const c = T[theme];
@@ -616,8 +614,57 @@ export default function App() {
       
       {/* PERHATIKAN: minHeight dihapus dan diganti dengan flex: 1 */}
       <section id="feed" style={{ background: c.bg, flex: 1, transition: "background 0.4s" }}>
-        {/* Kanvas diperlebar jika membuka Reader atau Vault */}
-        <div style={{ maxWidth: (currentVaultSlug || currentLegalSlug || currentPerspectiveSlug) ? 800 : 680, margin: "0 auto", padding: "4rem 1.5rem 6rem" }}>
+        
+        <style>{`
+          .app-container {
+            margin: 0 auto;
+            padding: 4rem 1.5rem 6rem;
+            transition: max-width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+          }
+          .app-container.standard { max-width: 680px; }
+          .app-container.wide { max-width: 800px; }
+          .app-container.desktop-feed { max-width: 680px; }
+          
+          .feed-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+          }
+          .feed-main {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+          }
+          .feed-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+          }
+          
+          @media (min-width: 1024px) {
+            .app-container.desktop-feed {
+              max-width: 1140px; 
+              padding-top: 5rem;
+            }
+            .feed-wrapper {
+              display: grid;
+              grid-template-columns: minmax(0, 1fr) 340px;
+              gap: 3.5rem;
+              align-items: start;
+            }
+            .feed-sidebar {
+              position: sticky;
+              top: 100px;
+              padding-left: 3.5rem;
+              border-left: 1px dashed ${c.border}; 
+            }
+            .mobile-divider {
+              display: none !important;
+            }
+          }
+        `}</style>
+
+        <div className={`app-container ${(currentVaultSlug || currentLegalSlug || currentPerspectiveSlug) ? "wide" : (mainTab === "Feed" ? "desktop-feed" : "standard")}`}>
           
           {currentLegalSlug ? (
             <LegalPage type={currentLegalSlug} theme={theme} />
@@ -633,7 +680,7 @@ export default function App() {
               onNavigate={(title: string) => {
                 window.history.pushState({}, '', `/perspectives/${slugify(title)}`);
                 window.dispatchEvent(new Event('popstate'));
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 50);
               }} 
             />          
           ) : currentVaultSlug ? (
@@ -670,6 +717,7 @@ export default function App() {
                         onClick={() => {
                           window.history.pushState({}, '', `/perspectives/${slugify(art.title)}`);
                           window.dispatchEvent(new Event('popstate'));
+                          setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 50);
                         }} 
                       />
                     </SmoothReveal>
@@ -680,103 +728,91 @@ export default function App() {
           ) : mainTab === "Vault" ? (
             <VaultGrid tools={vaultTools} theme={theme} />
           ) : mainTab === "Feed" ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div className="feed-wrapper">
               
-              {/* 1. BAGIAN ATAS: Filter & 3 Card Feed Terbaru */}
-              <div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
-                  <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.75rem", fontWeight: 800, letterSpacing: "0.1em", color: c.text, textTransform: "uppercase" }}>Live Feed</span>
-                  <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, color: c.textMuted }}>{filtered.length} entries</span>
+              <div className="feed-main">
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+                    <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.75rem", fontWeight: 800, letterSpacing: "0.1em", color: c.text, textTransform: "uppercase" }}>Live Feed</span>
+                    <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, color: c.textMuted }}>{filtered.length} entries</span>
+                  </div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: "2rem" }}>
+                    {FILTERS.map(f => <button key={f} onClick={() => { setFilter(f); setVisibleCount(3); }} style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: filter === f ? c.bg : c.textMuted, background: filter === f ? c.accent : "transparent", border: `1px solid ${filter === f ? c.accent : c.border}`, borderRadius: 100, padding: "0.35rem 1rem", cursor: "pointer", transition: "all 0.2s" }}>{f}</button>)}
+                  </div>
+                  
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                    {loading ? (
+                      <p style={{ color: c.textMuted, textAlign: "center", fontFamily: "'Manrope', sans-serif", fontWeight: 600 }}>Syncing data...</p>
+                    ) : displayedArticles.length === 0 ? (
+                      <p style={{ color: c.textMuted, textAlign: "center", fontFamily: "'Manrope', sans-serif", fontWeight: 600 }}>Belum ada card untuk kategori ini.</p>
+                    ) : (
+                      displayedArticles.map((card, i) => {
+                        const isNewBatch = i >= 3;
+                        const delayTime = isNewBatch ? ((i - 3) % itemsPerPage) * 75 : 0; 
+                        return (
+                          <SmoothReveal key={card.id} delay={delayTime}>
+                            <div id={`article-${card.id}`}>
+                              <Card card={card} theme={theme} idx={i} />
+                            </div>
+                          </SmoothReveal>
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: "2rem" }}>
-                  {FILTERS.map(f => <button key={f} onClick={() => { setFilter(f); setVisibleCount(3); }} style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: filter === f ? c.bg : c.textMuted, background: filter === f ? c.accent : "transparent", border: `1px solid ${filter === f ? c.accent : c.border}`, borderRadius: 100, padding: "0.35rem 1rem", cursor: "pointer", transition: "all 0.2s" }}>{f}</button>)}
-                </div>
-                
-               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                  {loading ? (
-                    <p style={{ color: c.textMuted, textAlign: "center", fontFamily: "'Manrope', sans-serif", fontWeight: 600 }}>Syncing data...</p>
-                  ) : displayedArticles.length === 0 ? (
-                    <p style={{ color: c.textMuted, textAlign: "center", fontFamily: "'Manrope', sans-serif", fontWeight: 600 }}>Belum ada card untuk kategori ini.</p>
-                  ) : (
-                    displayedArticles.map((card, i) => {
-                      // 3 Card awal (index 0,1,2) langsung muncul tanpa delay
-                      const isNewBatch = i >= 3;
-                      
-                      // Rumus Anti-Lag: Card baru pertama di tiap klik akan langsung muncul (0ms),
-                      // disusul Card berikutnya dengan jeda 75ms yang sangat rapat dan cepat.
-                      const delayTime = isNewBatch ? ((i - 3) % itemsPerPage) * 75 : 0; 
 
-                      return (
-                        <SmoothReveal key={card.id} delay={delayTime}>
-                          <div id={`article-${card.id}`}>
-                            <Card card={card} theme={theme} idx={i} />
-                          </div>
-                        </SmoothReveal>
-                      );
-                    })
-                  )}
-                </div>
+                {hasMore && !loading && (
+                  <div style={{ display: "flex", justifyContent: "center", margin: "2rem 0 1rem 0" }}>
+                    <button 
+                      onClick={() => setVisibleCount(prev => prev === 3 ? 10 : prev + itemsPerPage)} 
+                      style={{ 
+                        display: "flex", alignItems: "center", gap: 8, fontFamily: "'Manrope', sans-serif", 
+                        fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", 
+                        color: visibleCount === 3 ? c.bg : c.text, 
+                        background: visibleCount === 3 ? c.text : "transparent", 
+                        border: `1px solid ${visibleCount === 3 ? c.text : c.border}`, 
+                        borderRadius: 100, padding: "0.75rem 2rem", cursor: "pointer", transition: "all 0.2s" 
+                      }} 
+                      onMouseEnter={e => { 
+                        if(visibleCount !== 3) e.currentTarget.style.borderColor = c.accent; 
+                        else e.currentTarget.style.transform = "translateY(-2px)";
+                      }} 
+                      onMouseLeave={e => { 
+                        if(visibleCount !== 3) e.currentTarget.style.borderColor = c.border; 
+                        else e.currentTarget.style.transform = "translateY(0)";
+                      }}
+                    >
+                      {visibleCount === 3 ? "Tampilkan Feed Lainnya" : "Load More"} <i className="ri-arrow-down-line" style={{ fontSize: "0.9rem" }} />
+                    </button>
+                  </div>
+                )}
+
+                {perspectives.length > 0 && (
+                  <div style={{ marginTop: "2rem", paddingTop: "2rem", borderTop: `1px solid ${c.border}` }}>
+                    <InlinePerspectives perspectives={perspectives} theme={theme} />
+                  </div>
+                )}
               </div>
 
-              {/* 2. TOMBOL PEMBATAS FEED (Gatekeeper) */}
-              {hasMore && !loading && (
-                <div style={{ display: "flex", justifyContent: "center", margin: "2rem 0 1rem 0" }}>
-                  <button 
-                    onClick={() => setVisibleCount(prev => prev === 3 ? 10 : prev + itemsPerPage)} 
-                    style={{ 
-                      display: "flex", alignItems: "center", gap: 8, fontFamily: "'Manrope', sans-serif", 
-                      fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", 
-                      color: visibleCount === 3 ? c.bg : c.text, 
-                      background: visibleCount === 3 ? c.text : "transparent", 
-                      border: `1px solid ${visibleCount === 3 ? c.text : c.border}`, 
-                      borderRadius: 100, padding: "0.75rem 2rem", cursor: "pointer", transition: "all 0.2s" 
-                    }} 
-                    onMouseEnter={e => { 
-                      if(visibleCount !== 3) e.currentTarget.style.borderColor = c.accent; 
-                      else e.currentTarget.style.transform = "translateY(-2px)";
-                    }} 
-                    onMouseLeave={e => { 
-                      if(visibleCount !== 3) e.currentTarget.style.borderColor = c.border; 
-                      else e.currentTarget.style.transform = "translateY(0)";
-                    }}
-                  >
-                    {visibleCount === 3 ? "Tampilkan Feed Lainnya" : "Load More"} <i className="ri-arrow-down-line" style={{ fontSize: "0.9rem" }} />
-                  </button>
-                </div>
-              )}
+              <div className="feed-sidebar">
+                {articles.some((a: any) => a.featured) && (
+                  <InlineEditorPicks articles={articles.filter((a: any) => a.featured)} theme={theme} />
+                )}
 
-              {/* 3. BLOK KHUSUS: DEEP DIVES */}
-              {perspectives.length > 0 && (
-                <InlinePerspectives perspectives={perspectives} theme={theme} />
-              )}
+                {articles.some((a: any) => a.featured) && vaultTools.some((t: any) => t.featured === 1) && (
+                  <div className="mobile-divider" style={{ display: "flex", justifyContent: "center", margin: "1rem 0" }}>
+                    <div style={{ width: "40px", height: "4px", background: c.border, borderRadius: "2px" }} />
+                  </div>
+                )}
 
-              {perspectives.length > 0 && (articles.some((a: any) => a.featured) || vaultTools.some((t: any) => t.featured === 1)) && (
-                <div style={{ display: "flex", justifyContent: "center", margin: "1rem 0" }}>
+                {vaultTools.some((t: any) => t.featured === 1) && (
+                  <InlineVaultPromo tools={vaultTools.filter((t: any) => t.featured === 1)} theme={theme} />
+                )}
+
+                <div className="mobile-divider" style={{ display: "flex", justifyContent: "center", margin: "1rem 0" }}>
                   <div style={{ width: "40px", height: "4px", background: c.border, borderRadius: "2px" }} />
                 </div>
-              )}
 
-              {articles.some((a: any) => a.featured) && (
-                <InlineEditorPicks articles={articles.filter((a: any) => a.featured)} theme={theme} />
-              )}
-
-              {articles.some((a: any) => a.featured) && vaultTools.some((t: any) => t.featured === 1) && (
-                <div style={{ display: "flex", justifyContent: "center", margin: "1rem 0" }}>
-                  <div style={{ width: "40px", height: "4px", background: c.border, borderRadius: "2px" }} />
-                </div>
-              )}
-
-              {vaultTools.some((t: any) => t.featured === 1) && (
-                <InlineVaultPromo tools={vaultTools.filter((t: any) => t.featured === 1)} theme={theme} />
-              )}
-
-              {(perspectives.length > 0 || articles.some((a: any) => a.featured) || vaultTools.some((t: any) => t.featured === 1)) && (
-                <div style={{ display: "flex", justifyContent: "center", margin: "1rem 0" }}>
-                  <div style={{ width: "40px", height: "4px", background: c.border, borderRadius: "2px" }} />
-                </div>
-              )}
-
-              <div style={{ marginTop: "1rem" }}>
                 <InlineNewsletter theme={theme} />
               </div>
 
@@ -791,5 +827,3 @@ export default function App() {
     </div>
   );
 }
-// --- BATAS PERUBAHAN ---
-// --- BATAS PERUBAHAN ---
