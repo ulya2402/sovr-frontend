@@ -533,21 +533,38 @@ export default function App() {
       .catch(() => {});
   }, [pSort, pCat]);
 
-  // Reader Halaman Penuh + Tambah View
+  // 1. Reader Halaman Penuh + Tambah View
   useEffect(() => {
     if (currentPerspectiveSlug && perspectives.length > 0) {
       const found = perspectives.find(p => slugify(p.title) === currentPerspectiveSlug);
       if (found) {
+         setActivePerspective(found);
+         
          fetch(`https://backend-sovr.botgampang123.workers.dev/api/perspectives?id=${found.id}`)
            .then(res => res.json())
            .then(data => setActivePerspective(data))
-           .catch(() => setActivePerspective(found)); 
+           .catch(() => {}); 
       }
     } else {
       setActivePerspective(null);
     }
   }, [currentPerspectiveSlug, perspectives]);
 
+  // 2. Efek untuk mengganti Judul Tab Browser
+  useEffect(() => {
+    if (currentPerspectiveSlug && activePerspective) {
+      document.title = `${activePerspective.title} | SOVR. Perspectives`;
+    } else if (targetArticleSlug && articles.length > 0) {
+      const targetArticle = articles.find(a => slugify(a.title) === targetArticleSlug);
+      if (targetArticle) {
+        document.title = `${targetArticle.title} | SOVR.`;
+      } else {
+        document.title = "SOVR. | Portal Informasi AI & Kripto";
+      }
+    } else {
+      document.title = "SOVR. | Portal Informasi AI & Kripto";
+    }
+  }, [currentPerspectiveSlug, activePerspective, targetArticleSlug, articles]);
   // URL Router / Mesin State
   useEffect(() => {
     const handleLocationChange = () => {

@@ -1,6 +1,17 @@
 {
   "rewrites": [
     {
+      "source": "/(feed/.*|perspectives/.*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(bot|whatsapp|telegram|twitter|facebook|linkedin|discord|slack|skype).*"
+        }
+      ],
+      "destination": "/api/preview?path=$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
