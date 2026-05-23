@@ -5,6 +5,7 @@ import { PerspectiveCard, PerspectiveReader } from "./components/Perspective";
 import { VaultGrid, VaultDetail } from "./components/Vault";
 import { Navbar, Ticker, Hero, Footer } from "./components/Layout"; 
 import { LegalPage } from "./components/Legal"; 
+import { PromptOfTheDay } from "./components/PromptOfTheDay";
 
 
 // 🔥 TAMBAHAN: Fungsi Slugify untuk mengubah spasi jadi strip di URL
@@ -462,6 +463,7 @@ export default function App() {
   const [articles, setArticles] = useState<any[]>([]);
   const [vaultTools, setVaultTools] = useState<any[]>([]); 
   const [tickerData, setTickerData] = useState<any>(null); 
+  const [prompts, setPrompts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [visibleCount, setVisibleCount] = useState(3);
@@ -487,6 +489,8 @@ export default function App() {
       .then(res => res.json()).then(data => setTickerData(data)).catch(() => {});
     fetch("https://backend-sovr.botgampang123.workers.dev/api/vault")
       .then(res => res.json()).then(data => setVaultTools(data)).catch(() => {});
+    fetch("https://backend-sovr.botgampang123.workers.dev/api/prompts")
+      .then(res => res.json()).then(data => setPrompts(Array.isArray(data) ? data : [])).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -628,7 +632,7 @@ export default function App() {
           .feed-wrapper {
             display: flex;
             flex-direction: column;
-            gap: 3rem;
+            gap: 2rem;
           }
           .feed-main {
             display: flex;
@@ -792,7 +796,23 @@ export default function App() {
                     <InlinePerspectives perspectives={perspectives} theme={theme} />
                   </div>
                 )}
+
+                {prompts.length > 0 && (
+                  <>
+                    <div style={{ display: "flex", justifyContent: "center", margin: "0.3rem 0" }}>
+                      <div style={{ width: "40px", height: "4px", background: c.border, borderRadius: "2px" }} />
+                    </div>
+                    <div>
+                      <PromptOfTheDay prompts={prompts} theme={theme} />
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "center", margin: "0.3rem 0" }}>
+                      <div style={{ width: "40px", height: "4px", background: c.border, borderRadius: "2px" }} />
+                    </div>
+                  </>
+                )}
               </div>
+
+              
 
               <div className="feed-sidebar">
                 {articles.some((a: any) => a.featured) && (
