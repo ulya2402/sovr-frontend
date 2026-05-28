@@ -172,7 +172,18 @@ export function Card({ card, theme, idx }: any) {
           onClick={() => !isCapturing && setIsExpanded(!isExpanded)}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={MR({ fontSize: F.authorLabel, fontWeight: 800, color: c.accent, textTransform: "uppercase", letterSpacing: "0.1em" })}>
+            <span 
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isCapturing) return;
+                window.history.pushState({}, '', `/author/${slugify(card.author)}`);
+                window.dispatchEvent(new Event('popstate'));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              style={MR({ fontSize: F.authorLabel, fontWeight: 800, color: c.accent, textTransform: "uppercase", letterSpacing: "0.1em", cursor: isCapturing ? "default" : "pointer", transition: "text-decoration 0.2s" })}
+              onMouseEnter={(e) => { if(!isCapturing) e.currentTarget.style.textDecoration = "underline"; }}
+              onMouseLeave={(e) => { if(!isCapturing) e.currentTarget.style.textDecoration = "none"; }}
+            >
               {card.author}
             </span>
           </div>
@@ -328,13 +339,12 @@ export function Card({ card, theme, idx }: any) {
 // ══════════════════════════════════════════════
 // 2. KARTU PILIHAN EDITOR
 // ══════════════════════════════════════════════
+// --- AWAL PERUBAHAN: src/components/Cards.tsx (Fungsi EditorCard UTUH) ---
 export function EditorCard({ card, theme, idx }: any) {
   const c = T[theme];
   const [isExpanded, setIsExpanded]   = useState(true);
   const [showShare,  setShowShare]    = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
-
-  // 🔥 TAMBAHAN: State Toast untuk Editor Picks
   const [toast, setToast] = useState(false);
 
   const cardRef    = useRef<HTMLDivElement>(null);
@@ -352,11 +362,11 @@ export function EditorCard({ card, theme, idx }: any) {
   }, [isExpanded]);
 
   const handleCopyLink = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Mencegah kartu terbuka saat tombol diklik
+    e.stopPropagation(); 
     const link = `${window.location.origin}/editor-picks/${slugify(card.title)}`;
     navigator.clipboard.writeText(link).then(() => {
-      setToast(true); // Mengaktifkan efek centang hijau
-      setTimeout(() => setToast(false), 2000); // Kembali ke ikon unduh setelah 2 detik
+      setToast(true); 
+      setTimeout(() => setToast(false), 2000); 
     });
     setShowShare(false);
   };
@@ -370,16 +380,17 @@ export function EditorCard({ card, theme, idx }: any) {
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
       await new Promise((r) => setTimeout(r, 200));
 
+      const { toPng } = await import('html-to-image');
       const dataUrl = await toPng(cardRef.current, {
         quality: 1.0,
         pixelRatio: 3,
-        width: CAPTURE_WIDTH,
+        width: 640,
         backgroundColor: c.bg,
         style: {
           margin: "0",
           transform: "none",
-          width: `${CAPTURE_WIDTH}px`,
-          minWidth: `${CAPTURE_WIDTH}px`,
+          width: `640px`,
+          minWidth: `640px`,
           boxSizing: "border-box",
         },
         filter: (node: Element) =>
@@ -398,11 +409,18 @@ export function EditorCard({ card, theme, idx }: any) {
     }
   };
 
-  const F = isCapturing ? FONT_CAP : FONT;
+  const F = isCapturing ? { titleEditor: "1.55rem", body: "0.95rem", authorLabel: "0.78rem", timeLabel: "0.72rem", tagLabel: "0.68rem", sourceLabel: "0.58rem", sourceName: "0.88rem", domainBrand: "0.82rem" } : { titleEditor: "1.4rem", body: "0.88rem", authorLabel: "0.72rem", timeLabel: "0.68rem", tagLabel: "0.63rem", sourceLabel: "0.55rem", sourceName: "0.82rem", domainBrand: "0.78rem" };
+  const GAP_NORMAL = 12;
+  const GAP_CAPTURE = 16;
+  const CAPTURE_WIDTH = 640;
+
+  const MR = (extra?: React.CSSProperties): React.CSSProperties => ({
+    fontFamily: "'Manrope', sans-serif",
+    ...extra,
+  });
 
   return (
     <>
-      {/* 🔥 TAMBAHAN: Komponen Toast Kapsul Melayang */}
       {toast && (
         <div style={{
           position: "fixed", bottom: 40, left: "50%", transform: "translateX(-50%)",
@@ -416,7 +434,6 @@ export function EditorCard({ card, theme, idx }: any) {
           Link berhasil disalin
         </div>
       )}
-
       <div
         ref={cardRef}
         style={{
@@ -437,7 +454,6 @@ export function EditorCard({ card, theme, idx }: any) {
         onMouseEnter={(e) => { if (!isExpanded && !isCapturing) e.currentTarget.style.borderColor = c.accent; }}
         onMouseLeave={(e) => { if (!isExpanded && !isCapturing) e.currentTarget.style.borderColor = c.border; }}
       >
-        {/* Dekorasi sudut kiri atas */}
         <div style={{
           position: "absolute", top: -1, left: -1,
           width: 36, height: 36,
@@ -446,8 +462,7 @@ export function EditorCard({ card, theme, idx }: any) {
           borderTopLeftRadius: 12,
           pointerEvents: "none",
         }} />
-
-        {/* ── SECTION 1: Header — avatar + nama + waktu + tag ── */}
+        
         <div
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "0.85rem", borderBottom: `1px solid ${c.border}`, cursor: isCapturing ? "default" : "pointer" }}
           onClick={() => !isCapturing && setIsExpanded(!isExpanded)}
@@ -457,7 +472,18 @@ export function EditorCard({ card, theme, idx }: any) {
               <i className="ri-quill-pen-line" style={{ fontSize: "1.1rem" }} />
             </div>
             <div>
-              <div style={MR({ fontSize: F.authorLabel, fontWeight: 700, color: c.accent, textTransform: "uppercase", letterSpacing: "0.06em" })}>
+              <div 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isCapturing) return;
+                  window.history.pushState({}, '', `/author/${slugify(card.author)}`);
+                  window.dispatchEvent(new Event('popstate'));
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                style={MR({ fontSize: F.authorLabel, fontWeight: 700, color: c.accent, textTransform: "uppercase", letterSpacing: "0.06em", cursor: isCapturing ? "default" : "pointer", transition: "text-decoration 0.2s" })}
+                onMouseEnter={(e) => { if(!isCapturing) e.currentTarget.style.textDecoration = "underline"; }}
+                onMouseLeave={(e) => { if(!isCapturing) e.currentTarget.style.textDecoration = "none"; }}
+              >
                 {card.author}
               </div>
               <div style={MR({ fontSize: F.timeLabel, color: c.textMuted, fontWeight: 500, marginTop: 2 })}>
@@ -480,7 +506,6 @@ export function EditorCard({ card, theme, idx }: any) {
           </div>
         </div>
 
-        {/* ── SECTION 2: Judul + Isi ── */}
         <div
           style={{ cursor: isCapturing ? "default" : "pointer" }}
           onClick={() => !isCapturing && setIsExpanded(!isExpanded)}
@@ -495,7 +520,6 @@ export function EditorCard({ card, theme, idx }: any) {
           })}>
             {card.title}
           </h3>
-
           <div style={{
             maxHeight: isCapturing ? "none" : contentHeight,
             overflow: "hidden",
@@ -524,7 +548,6 @@ export function EditorCard({ card, theme, idx }: any) {
           </div>
         </div>
 
-        {/* ── SECTION 3: Kotak Sumber ── */}
         {(isExpanded || isCapturing) && (
           <div style={{
             padding: isCapturing ? "0.95rem 1.2rem" : "1rem 1.1rem",
@@ -560,7 +583,6 @@ export function EditorCard({ card, theme, idx }: any) {
           </div>
         )}
 
-        {/* ── SECTION 4: Footer — domain kiri, tombol kanan ── */}
         <div style={{
           display: "flex",
           alignItems: "center",
@@ -568,7 +590,6 @@ export function EditorCard({ card, theme, idx }: any) {
           paddingTop: "0.6rem",
           borderTop: `1px solid ${c.border}`,
         }}>
-          {/* Domain brand — selalu ada di kiri */}
           <span style={MR({
             fontSize: F.domainBrand,
             fontWeight: 800,
@@ -578,7 +599,6 @@ export function EditorCard({ card, theme, idx }: any) {
           })}>
             {domain}
           </span>
-
           {isCapturing ? null : (
             <div className="no-print" style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <div style={{ position: "relative" }} onMouseLeave={() => setShowShare(false)}>
@@ -610,7 +630,5 @@ export function EditorCard({ card, theme, idx }: any) {
         </div>
       </div>
     </>
-  
   );
-
 }

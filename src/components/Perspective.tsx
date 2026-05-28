@@ -1,6 +1,7 @@
 // --- AWAL PERUBAHAN ---
 import { T } from "../theme";
 import { useEffect, useRef } from "react";
+import { slugify } from "../App";
 
 export function PerspectiveCard({ article, theme, onClick }: any) {
   const c = T[theme];
@@ -44,9 +45,21 @@ export function PerspectiveCard({ article, theme, onClick }: any) {
         {/* PERBAIKAN 1: Flexbox Presisi pada Baris Tanggal & Penulis di Halaman Depan */}
         <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", color: c.textMuted, fontWeight: 700, marginBottom: "0.6rem", textTransform: "uppercase", letterSpacing: "0.05em", display: "flex", alignItems: "center" }}>
           <span>{article.published_date}</span>
-          <span style={{ margin: "0 8px", opacity: 0.5 }}>•</span>
-         <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            Oleh&nbsp;<span style={{ color: c.accent }}>{article.author}</span>
+          <span style={{ margin: "0 8px", opacity: 0.5 }}>|</span>
+          <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            Oleh&nbsp;<span 
+              onClick={(e) => {
+                e.stopPropagation();
+                window.history.pushState({}, '', `/author/${slugify(article.author)}`);
+                window.dispatchEvent(new Event('popstate'));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              style={{ color: c.accent, cursor: "pointer", transition: "all 0.2s" }}
+              onMouseEnter={e => e.currentTarget.style.textDecoration = "underline"}
+              onMouseLeave={e => e.currentTarget.style.textDecoration = "none"}
+            >
+              {article.author}
+            </span>
           </span>
         </div>
         
@@ -189,10 +202,22 @@ export function PerspectiveReader({ article, allArticles = [], theme, onBack, on
               {article.title}
             </h1>
             <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.75rem", color: c.textMuted, fontWeight: 600, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 16 }}>
-               <span style={{ display: "flex", alignItems: "center", gap: 6 }}><i className="ri-quill-pen-line" style={{ fontSize: "0.9rem" }} /> {article.author}</span>
-               <span>•</span>
+               <span 
+                 onClick={(e) => {
+                   e.stopPropagation();
+                   window.history.pushState({}, '', `/author/${slugify(article.author)}`);
+                   window.dispatchEvent(new Event('popstate'));
+                   window.scrollTo({ top: 0, behavior: "smooth" });
+                 }}
+                 style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", color: c.textMuted, transition: "color 0.2s" }}
+                 onMouseEnter={e => e.currentTarget.style.color = c.accent}
+                 onMouseLeave={e => e.currentTarget.style.color = c.textMuted}
+               >
+                 <i className="ri-quill-pen-line" style={{ fontSize: "0.9rem" }} /> {article.author}
+               </span>
+               <span>|</span>
                <span style={{ display: "flex", alignItems: "center", gap: 6 }}><i className="ri-calendar-line" style={{ fontSize: "0.9rem" }} /> {article.published_date}</span>
-               <span>•</span>
+               <span>|</span>
                <span style={{ display: "flex", alignItems: "center", gap: 6 }}><i className="ri-eye-line" style={{ fontSize: "0.9rem" }} /> {article.views} Dilihat</span>
             </div>
           </div>

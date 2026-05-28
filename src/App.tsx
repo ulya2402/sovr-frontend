@@ -6,6 +6,7 @@ import { VaultGrid, VaultDetail } from "./components/Vault";
 import { Navbar, Ticker, Hero, Footer } from "./components/Layout"; 
 import { LegalPage } from "./components/Legal"; 
 import { PromptOfTheDay } from "./components/PromptOfTheDay";
+import { AuthorProfile } from "./components/Author";
 
 
 // 🔥 TAMBAHAN: Fungsi Slugify untuk mengubah spasi jadi strip di URL
@@ -499,6 +500,7 @@ export default function App() {
   const [vaultTools, setVaultTools] = useState<any[]>([]); 
   const [tickerData, setTickerData] = useState<any>(null); 
   const [prompts, setPrompts] = useState<any[]>([]);
+  const [authors, setAuthors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [visibleCount, setVisibleCount] = useState(3);
@@ -508,6 +510,7 @@ export default function App() {
   const [currentVaultSlug, setCurrentVaultSlug] = useState<string | null>(null); 
   const [targetArticleSlug, setTargetArticleSlug] = useState<string | null>(null);
   const [currentLegalSlug, setCurrentLegalSlug] = useState<string | null>(null);
+  const [currentAuthorSlug, setCurrentAuthorSlug] = useState<string | null>(null);
   
   // State Khusus Perspectives
   const [perspectives, setPerspectives] = useState<any[]>([]);
@@ -526,6 +529,8 @@ export default function App() {
       .then(res => res.json()).then(data => setVaultTools(data)).catch(() => {});
     fetch("https://backend-sovr.botgampang123.workers.dev/api/prompts")
       .then(res => res.json()).then(data => setPrompts(Array.isArray(data) ? data : [])).catch(() => {});
+    fetch("https://backend-sovr.botgampang123.workers.dev/api/authors")
+      .then(res => res.json()).then(data => setAuthors(Array.isArray(data) ? data : [])).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -609,6 +614,7 @@ export default function App() {
       const resetAll = () => {
         setCurrentVaultSlug(null); setTargetArticleSlug(null);
         setCurrentLegalSlug(null); setCurrentPerspectiveSlug(null);
+        setCurrentAuthorSlug(null);
       };
 
       if (['about', 'privacy-policy', 'contact'].includes(segments[0])) {
@@ -619,6 +625,8 @@ export default function App() {
         resetAll(); setMainTab('Perspectives'); setCurrentPerspectiveSlug(segments[1] || null);
       } else if (segments[0] === 'editor-picks') {
         resetAll(); setMainTab('Pilihan Editor'); setTargetArticleSlug(segments[1] || null); 
+      } else if (segments[0] === 'author') {
+        resetAll(); setMainTab('Author'); setCurrentAuthorSlug(segments[1] || null);
       } else if (segments[0] === 'feed') {
         resetAll(); setMainTab('Feed'); setTargetArticleSlug(segments[1] || null); 
       } else {
@@ -720,10 +728,17 @@ export default function App() {
           }
         `}</style>
 
-        <div className={`app-container ${(currentVaultSlug || currentLegalSlug || currentPerspectiveSlug) ? "wide" : (mainTab === "Feed" ? "desktop-feed" : "standard")}`}>
+        <div className={`app-container ${(currentVaultSlug || currentLegalSlug || currentPerspectiveSlug || currentAuthorSlug) ? "wide" : (mainTab === "Feed" ? "desktop-feed" : "standard")}`}>
           
           {currentLegalSlug ? (
             <LegalPage type={currentLegalSlug} theme={theme} />
+          ) : currentAuthorSlug ? (
+            <AuthorProfile 
+              author={authors.find(a => a.slug === currentAuthorSlug) || { name: currentAuthorSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), slug: currentAuthorSlug }} 
+              articles={articles.filter(a => slugify(a.author) === currentAuthorSlug)} 
+              perspectives={perspectives.filter(p => slugify(p.author) === currentAuthorSlug)} 
+              theme={theme} 
+            />
           ) : currentPerspectiveSlug && activePerspective ? (
             <PerspectiveReader 
               article={activePerspective} 
