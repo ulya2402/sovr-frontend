@@ -1,12 +1,20 @@
 import { useState, useEffect, useRef } from "react";
 import { T } from "../theme";
 
-export function Hero({ theme, tickerData }: any) {
+// --- AWAL PERUBAHAN: src/components/Layout.tsx (Fungsi Hero - Asymmetric Bento) ---
+// --- AWAL PERUBAHAN: src/components/Layout.tsx (Fungsi Hero - Stack 3 Kartu) ---
+// --- AWAL PERUBAHAN: src/components/Layout.tsx (Fungsi Hero - Tumpukan Buku Kompak) ---
+// --- AWAL PERUBAHAN: src/components/Layout.tsx (Fungsi Hero - Mobile Scroll Parallax) ---
+export function Hero({ theme, tickerData, articles = [], perspectives = [] }: any) {
   const c = T[theme];
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
   const [now, setNow] = useState(new Date());
+
+  // Waktu Live
   useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t); }, []);
-  
+
+  // Animasi Background Canvas
   useEffect(() => {
     const canvas = canvasRef.current; if (!canvas) return;
     const ctx = canvas.getContext("2d"); let W: number, H: number, raf: number;
@@ -23,7 +31,20 @@ export function Hero({ theme, tickerData }: any) {
     draw(); window.addEventListener("resize", resize);
     return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize); };
   }, [theme]);
-  
+
+  // Efek Parallax Scroll (Super Smooth via CSS Variable)
+  useEffect(() => {
+    const handleScroll = () => {
+      if (heroRef.current) {
+        // Kita membatasi perhitungan maksimal di angka 200 agar kartu tidak berhamburan terlalu jauh
+        const sy = Math.min(window.scrollY, 200);
+        heroRef.current.style.setProperty('--sy', sy.toString());
+      }
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const timeStr = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const dateStr = now.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
@@ -33,44 +54,266 @@ export function Hero({ theme, tickerData }: any) {
 
   const statCards = [
     { label: "Bitcoin", val: `$${btc.price}`, ch: btc.change, up: btc.isUp, icon: "ri-btc-line" },
-    { label: "Sentimen", val: fng.value, ch: fng.classification, up: fng.classification.toLowerCase().includes("greed"), icon: "ri-pulse-line" },
-    { label: "Ethereum", val: `$${eth.price}`, ch: eth.change, up: eth.isUp, icon: "ri-eth-line" }
+    { label: "Ethereum", val: `$${eth.price}`, ch: eth.change, up: eth.isUp, icon: "ri-eth-line" },
+    { label: "Market Sentimen", val: fng.value, ch: fng.classification, up: fng.classification.toLowerCase().includes("greed"), icon: "ri-pulse-line" }
   ];
 
+  const slugify = (text: string) => text ? text.toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
+
+  const topItems: any[] = [];
+  if (perspectives && perspectives.length > 0) {
+    topItems.push({ ...perspectives[0], _type: 'perspective', _icon: 'ri-book-open-line', _cat: 'Editorial Deep Dive' });
+  }
+  
+  const featuredArts = articles ? articles.filter((a: any) => a.featured) : [];
+  const regularArts = articles ? articles.filter((a: any) => !a.featured) : [];
+  const availableArts = [...featuredArts, ...regularArts];
+  
+  for (let i = 0; i < availableArts.length && topItems.length < 3; i++) {
+    const a = availableArts[i];
+    let icon = "ri-flashlight-line";
+    if (a.cat === "ai") icon = "ri-sparkling-2-line";
+    if (a.cat === "kripto") icon = "ri-coin-line";
+    if (a.cat === "defi") icon = "ri-swap-line";
+    topItems.push({ ...a, _type: 'article', _icon: icon, _cat: a.tag || a.category });
+  }
+
+  const handleCardClick = (item: any, e: React.MouseEvent) => {
+    e.preventDefault();
+    const path = item._type === 'perspective' ? `/perspectives/${slugify(item.title)}` : `/feed/${slugify(item.title)}`;
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new Event('popstate'));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const scrollToFeed = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const feedEl = document.getElementById("feed");
+    if (feedEl) {
+      window.scrollTo({ top: feedEl.getBoundingClientRect().top - 40, behavior: "smooth" });
+    }
+  };
+
   return (
-    <section style={{ position: "relative", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "90px 2rem 3rem", overflow: "hidden", background: c.bg }}>
-      <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 0 }} />
-      
-      <div style={{ position: "absolute", top: 80, right: "4%", zIndex: 2, background: c.glass, backdropFilter: "blur(10px)", border: `1px solid ${c.border}`, borderRadius: 8, padding: "0.6rem 1.25rem", textAlign: "right" }}>
-        <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.85rem", fontWeight: 700, color: c.accent, letterSpacing: "0.05em" }}>{timeStr}</div>
-        <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.55rem", fontWeight: 600, color: c.textMuted, letterSpacing: "0.08em", marginTop: 2, textTransform: "uppercase" }}>{dateStr}</div>
+    <section ref={heroRef} style={{ position: "relative", minHeight: "100vh", display: "flex", flexDirection: "column", background: c.bg, paddingTop: 56, overflow: "hidden" }}>
+      <style>{`
+        @keyframes slideUpFade {
+          0% { opacity: 0; transform: translateY(30px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .hero-bento {
+          display: flex;
+          flex-direction: column;
+          gap: 3rem;
+          flex: 1;
+          padding: 5.5rem 1.5rem 3rem;
+          max-width: 1240px;
+          margin: 0 auto;
+          width: 100%;
+          z-index: 2;
+        }
+
+        .hero-left {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+          will-change: transform, opacity;
+        }
+
+        .hero-right {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+          will-change: transform, opacity;
+          position: relative;
+        }
+
+        /* --- STYLING BUKU TERTUMPUK PRESISI --- */
+        .hero-stack-container {
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          max-width: 420px;
+          position: relative;
+          will-change: transform;
+        }
+
+        .stack-card {
+          background: ${theme === 'dark' ? 'rgba(35,35,35,0.92)' : 'rgba(255,255,255,0.92)'};
+          backdrop-filter: blur(24px);
+          -webkit-backdrop-filter: blur(24px);
+          border: 1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'};
+          border-radius: 20px;
+          padding: 1.5rem;
+          text-decoration: none;
+          display: flex;
+          flex-direction: column;
+          gap: 0.8rem;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+          position: relative;
+          cursor: pointer;
+          
+          /* Menggunakan transition untuk memuluskan pergerakan scroll maupun hover */
+          transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, margin 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+          will-change: transform;
+        }
+
+        /* Tumpukan dengan efek Scroll Parallax (--sy) */
+        /* Semakin di-scroll, kartu akan menyebar ke bawah */
+        .stack-card:nth-child(1) { 
+          z-index: 3; 
+          transform: translateY(calc(var(--sy, 0) * -0.05px)) scale(1); 
+        }
+        .stack-card:nth-child(2) { 
+          z-index: 2; margin-top: -110px; 
+          transform: translateY(calc(12px + var(--sy, 0) * 0.15px)) scale(0.95); 
+          opacity: 0.85; 
+        }
+        .stack-card:nth-child(3) { 
+          z-index: 1; margin-top: -110px; 
+          transform: translateY(calc(24px + var(--sy, 0) * 0.35px)) scale(0.90); 
+          opacity: 0.6; 
+        }
+
+        /* Interaksi Hover (Khusus Desktop/Mouse) - Override Parallax agar terbuka penuh */
+        .hero-stack-container:hover .stack-card:nth-child(1) { transform: translateY(-8px) scale(1) !important; border-color: ${c.accent}; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
+        .hero-stack-container:hover .stack-card:nth-child(2) { margin-top: -24px; transform: translateY(0) scale(0.98) !important; opacity: 1; border-color: ${c.accent}; }
+        .hero-stack-container:hover .stack-card:nth-child(3) { margin-top: -24px; transform: translateY(0) scale(0.96) !important; opacity: 1; border-color: ${c.accent}; }
+
+        .stack-card:hover .stack-arrow {
+          transform: rotate(-45deg);
+          color: ${c.accent};
+        }
+
+        /* --- STYLING MARKET GRID --- */
+        .hero-market-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          border-top: 1px solid ${c.border};
+          z-index: 2;
+        }
+
+        .hero-stat-item {
+          padding: 1.5rem 2rem;
+          border-bottom: 1px solid ${c.border};
+          background: ${theme === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.4)'};
+          backdrop-filter: blur(10px);
+        }
+
+        @media (min-width: 1024px) {
+          .hero-bento {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            padding: 0 2rem;
+            gap: 5rem;
+          }
+          .hero-stat-item {
+            border-bottom: none;
+            border-right: 1px solid ${c.border};
+          }
+          .hero-stat-item:last-child {
+            border-right: none;
+          }
+        }
+      `}</style>
+
+      <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 0, opacity: 0.4 }} />
+      <div style={{ position: "absolute", top: "5%", left: "50%", transform: "translateX(-50%)", width: "80vw", height: "80vh", background: c.accent, opacity: 0.05, filter: "blur(120px)", borderRadius: "50%", zIndex: 0, pointerEvents: "none" }} />
+
+      <div className="hero-bento">
+        <div className="hero-left">
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: "2rem" }}>
+            <span style={{ width: 8, height: 8, background: c.accent, borderRadius: "50%", animation: "blink 2s infinite" }} />
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: c.textMuted }}>
+              {dateStr}
+            </span>
+          </div>
+
+          <h1 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "clamp(3.5rem, 9vw, 7.5rem)", fontWeight: 900, color: c.text, lineHeight: 0.9, letterSpacing: "-0.04em", margin: "0 0 1.25rem 0" }}>
+            SOVR<span style={{ color: c.accent }}>.</span>
+          </h1>
+          
+          <h2 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "clamp(1.5rem, 4vw, 2.8rem)", fontWeight: 800, color: c.text, lineHeight: 1.2, letterSpacing: "-0.02em", margin: "0 0 1.5rem 0" }}>
+            Insight In <span style={{ color: c.accent }}>Second.</span>
+          </h2>
+
+          <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.1rem", color: c.textSub, lineHeight: 1.6, fontWeight: 500, margin: "0 0 2.5rem 0", maxWidth: 450 }}>
+            Kurasi berita ekosistem AI, Web3, dan teknologi masa depan langsung dari meja redaksi.
+          </p>
+
+          <a href="#feed" onClick={scrollToFeed} style={{ 
+            display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10, 
+            fontFamily: "'Space Mono', monospace", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", 
+            color: c.bg, background: c.text, border: `1px solid ${c.text}`, 
+            padding: "1rem 2.2rem", borderRadius: "100px", width: "fit-content", transition: "all 0.3s",
+            textDecoration: "none"
+          }} 
+          onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = `0 10px 20px ${theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`; }} 
+          onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
+            Jelajahi Feed <i className="ri-arrow-down-line" style={{ fontSize: "1.1rem" }} />
+          </a>
+        </div>
+
+        <div className="hero-right">
+          {topItems.length > 0 ? (
+            <div className="hero-stack-container">
+              {topItems.map((item, i) => (
+                <div key={i} className="stack-card" onClick={(e) => handleCardClick(item, e)}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.55rem", fontWeight: 700, letterSpacing: "0.15em", color: item._type === 'perspective' ? c.bg : c.accent, textTransform: "uppercase", background: item._type === 'perspective' ? c.accent : c.accentDim, padding: "0.3rem 0.8rem", borderRadius: "100px" }}>
+                      {item._cat}
+                    </span>
+                    <i className={item._icon} style={{ color: c.textMuted, fontSize: "1.2rem" }} />
+                  </div>
+
+                  <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.15rem", fontWeight: 800, color: c.text, lineHeight: 1.35, letterSpacing: "-0.01em", margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                    {item.title}
+                  </h3>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: "0.5rem" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 800, color: c.text, textTransform: "uppercase", letterSpacing: "0.05em" }}>{item.author}</span>
+                      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.55rem", color: c.textMuted }}>{item.time || item.published_date}</span>
+                    </div>
+                    <i className="ri-arrow-right-up-line stack-arrow" style={{ fontSize: "1.1rem", color: c.textMuted, transition: "all 0.3s" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="hero-stack-container" style={{ opacity: 0.5 }}>
+              <div className="stack-card">
+                <div style={{ height: 20, width: 120, background: c.border, borderRadius: 10, animation: "blink 1.5s infinite" }} />
+                <div style={{ height: 30, width: "100%", background: c.border, borderRadius: 10, animation: "blink 1.5s infinite" }} />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div style={{ position: "relative", zIndex: 2, textAlign: "center", maxWidth: 700, animation: "heroIn 1s cubic-bezier(0.16, 1, 0.3, 1) both" }}>
-        <div style={{ marginBottom: "1rem", lineHeight: 1 }}>
-          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "clamp(5rem, 15vw, 10rem)", fontWeight: 800, color: c.text, letterSpacing: "-0.04em", textTransform: "uppercase" }}>SOVR<span style={{ color: c.accent }}>.</span></span>
-        </div>
-        
-        {/* PERUBAHAN: Tagline dikembalikan */}
-        <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: "clamp(1rem, 2.5vw, 1.2rem)", fontWeight: 500, color: c.textSub, marginBottom: "3.5rem", letterSpacing: "0.02em" }}>Insight in Seconds.</p>
-        
-        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginBottom: "3.5rem" }}>
-          {statCards.map(s => (
-            <div key={s.label} style={{ background: c.bg, border: `1px solid ${c.border}`, borderRadius: 8, padding: "1rem 1.5rem", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, minWidth: 120 }}>
-              <i className={s.icon} style={{ fontSize: "1.2rem", color: c.textMuted }} />
-              <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.1rem", color: c.text, fontWeight: 700, letterSpacing: "-0.02em" }}>{s.val}</span>
-              <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.05em", color: s.up ? c.up : c.down }}>{s.ch}</span>
-              <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.55rem", fontWeight: 600, letterSpacing: "0.15em", color: c.textMuted, textTransform: "uppercase" }}>{s.label}</span>
+      {/* --- Bottom Market Grid --- */}
+      <div className="hero-market-grid">
+        {statCards.map((s) => (
+          <div key={s.label} className="hero-stat-item">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem" }}>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.15em", color: c.textMuted, textTransform: "uppercase" }}>{s.label}</span>
+              <i className={s.icon} style={{ fontSize: "1.1rem", color: c.textMuted }} />
             </div>
-          ))}
-        </div>
-        
-        {/* PERUBAHAN: Tombol Explore diganti Baca Insight */}
-        <a href="#feed" style={{ display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "'Manrope', sans-serif", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: c.bg, textDecoration: "none", background: c.accent, padding: "0.85rem 2.5rem", borderRadius: 100, transition: "transform 0.2s" }} onMouseEnter={e => e.currentTarget.style.transform = "translateY(-3px)"} onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>Baca Insight <i className="ri-arrow-down-line" style={{ fontSize: "0.9rem" }} /></a>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+              <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.6rem", color: c.text, fontWeight: 800, letterSpacing: "-0.03em" }}>{s.val}</span>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.65rem", fontWeight: 700, color: s.up ? c.up : c.down, background: s.up ? (theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)') : 'transparent', padding: "4px 8px", borderRadius: "6px" }}>{s.ch}</span>
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );
 }
+// --- BATAS PERUBAHAN ---
 
 export function Ticker({ theme, tickerData }: any) {
   const c = T[theme];

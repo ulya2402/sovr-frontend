@@ -674,7 +674,7 @@ export default function App() {
       <Navbar theme={theme} setTheme={setTheme} mainTab={mainTab} />
       
       {mainTab === "Feed" && !currentVaultSlug && !currentLegalSlug && !currentPerspectiveSlug && <Ticker theme={theme} tickerData={tickerData} />}
-      {mainTab === "Feed" && !currentVaultSlug && !currentLegalSlug && !currentPerspectiveSlug && <Hero theme={theme} tickerData={tickerData} />}
+      {mainTab === "Feed" && !currentVaultSlug && !currentLegalSlug && !currentPerspectiveSlug && <Hero theme={theme} tickerData={tickerData} articles={articles} perspectives={perspectives} />}
       
       {/* PERHATIKAN: minHeight dihapus dan diganti dengan flex: 1 */}
       <section id="feed" style={{ background: c.bg, flex: 1, transition: "background 0.4s" }}>
