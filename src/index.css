@@ -2,6 +2,23 @@
 @import url('https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css');
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+* {
+  /* Menghilangkan blok abu-abu/biru/kotak saat elemen disentuh di HP/Mobile */
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus, a:focus {
+  /* Menghilangkan kotak garis luar bawaan browser saat diklik di Desktop */
+  outline: none;
+}
+
+/* Tetap menjaga aksesibilitas bagi pengguna yang bernavigasi menggunakan keyboard (tombol TAB) */
+button:focus-visible, a:focus-visible {
+  outline: 2px solid rgba(136, 136, 136, 0.5);
+  outline-offset: 2px;
+}
+
 html { scroll-behavior: smooth; }
 body { min-height: 100vh; overflow-x: hidden; transition: background 0.4s; text-align: left; }
 ::-webkit-scrollbar { width: 3px; }
