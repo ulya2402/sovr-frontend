@@ -45,7 +45,6 @@ export function Hero({ theme, tickerData, articles = [], perspectives = [] }: an
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const timeStr = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const dateStr = now.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   const btc = tickerData?.coins?.find((c: any) => c.symbol === "BTC") || { price: "...", change: "...", isUp: true };
