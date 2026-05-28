@@ -68,7 +68,7 @@ export function Hero({ theme, tickerData, articles = [], perspectives = [] }: an
 
   const topItems: any[] = [];
   if (perspectives && perspectives.length > 0) {
-    topItems.push({ ...perspectives[0], _type: 'perspective', _icon: 'ri-book-open-line', _cat: 'Editorial Deep Dive' });
+    topItems.push({ ...perspectives[0], _type: 'perspective', _icon: 'ri-book-open-line', _cat: 'Perspectives' });
   }
   
   const featuredArts = articles ? articles.filter((a: any) => a.featured) : [];
@@ -253,7 +253,7 @@ export function Hero({ theme, tickerData, articles = [], perspectives = [] }: an
           </h2>
 
           <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.1rem", color: c.textSub, lineHeight: 1.6, fontWeight: 500, margin: "0 0 2.5rem 0", maxWidth: 450 }}>
-            Kurasi berita ekosistem AI, Web3, dan teknologi masa depan langsung dari meja redaksi.
+            Dapatkan berita terkini seputar kripto dan AI dalam satu platform yang terpercaya.
           </p>
 
           <a href="#feed" onClick={scrollToFeed} style={{ 
