@@ -5,13 +5,13 @@ import { T } from "../theme";
 // --- AWAL PERUBAHAN: src/components/Layout.tsx (Fungsi Hero - Stack 3 Kartu) ---
 // --- AWAL PERUBAHAN: src/components/Layout.tsx (Fungsi Hero - Tumpukan Buku Kompak) ---
 // --- AWAL PERUBAHAN: src/components/Layout.tsx (Fungsi Hero - Mobile Scroll Parallax) ---
+// --- AWAL PERUBAHAN: src/components/Layout.tsx (Fungsi Hero - Anti Lag Version) ---
 export function Hero({ theme, tickerData, articles = [], perspectives = [] }: any) {
   const c = T[theme];
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const heroRef = useRef<HTMLElement>(null);
   const [now, setNow] = useState(new Date());
 
-  // Waktu Live
   useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t); }, []);
 
   // Animasi Background Canvas
@@ -32,13 +32,20 @@ export function Hero({ theme, tickerData, articles = [], perspectives = [] }: an
     return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize); };
   }, [theme]);
 
-  // Efek Parallax Scroll (Super Smooth via CSS Variable)
+  // Efek Parallax Scroll SUPER SMOOTH (Anti Lag via requestAnimationFrame)
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      if (heroRef.current) {
-        // Kita membatasi perhitungan maksimal di angka 200 agar kartu tidak berhamburan terlalu jauh
-        const sy = Math.min(window.scrollY, 200);
-        heroRef.current.style.setProperty('--sy', sy.toString());
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          if (heroRef.current) {
+            // Batas maksimal scroll efek mekar (250) agar tidak bablas
+            const sy = Math.min(window.scrollY, 250);
+            heroRef.current.style.setProperty('--sy', sy.toString());
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -130,7 +137,7 @@ export function Hero({ theme, tickerData, articles = [], perspectives = [] }: an
           position: relative;
         }
 
-        /* --- STYLING BUKU TERTUMPUK PRESISI --- */
+        /* --- STYLING BUKU TERTUMPUK --- */
         .hero-stack-container {
           display: flex;
           flex-direction: column;
@@ -154,33 +161,38 @@ export function Hero({ theme, tickerData, articles = [], perspectives = [] }: an
           box-shadow: 0 10px 30px rgba(0,0,0,0.06);
           position: relative;
           cursor: pointer;
-          
-          /* Menggunakan transition untuk memuluskan pergerakan scroll maupun hover */
-          transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, margin 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
           will-change: transform;
+          
+          /* OPTIMASI LAG: Hapus transisi 'transform' & 'margin' di mobile agar JS & CSS tidak bentrok! */
+          transition: opacity 0.3s ease, border-color 0.4s ease, box-shadow 0.4s ease;
         }
 
-        /* Tumpukan dengan efek Scroll Parallax (--sy) */
-        /* Semakin di-scroll, kartu akan menyebar ke bawah */
+        /* Posisi Mekar Berdasarkan Variabel Scroll (--sy) - Mulus menempel di jari pengguna */
         .stack-card:nth-child(1) { 
           z-index: 3; 
           transform: translateY(calc(var(--sy, 0) * -0.05px)) scale(1); 
         }
         .stack-card:nth-child(2) { 
           z-index: 2; margin-top: -110px; 
-          transform: translateY(calc(12px + var(--sy, 0) * 0.15px)) scale(0.95); 
+          transform: translateY(calc(12px + var(--sy, 0) * 0.18px)) scale(0.95); 
           opacity: 0.85; 
         }
         .stack-card:nth-child(3) { 
           z-index: 1; margin-top: -110px; 
-          transform: translateY(calc(24px + var(--sy, 0) * 0.35px)) scale(0.90); 
+          transform: translateY(calc(24px + var(--sy, 0) * 0.4px)) scale(0.90); 
           opacity: 0.6; 
         }
 
-        /* Interaksi Hover (Khusus Desktop/Mouse) - Override Parallax agar terbuka penuh */
-        .hero-stack-container:hover .stack-card:nth-child(1) { transform: translateY(-8px) scale(1) !important; border-color: ${c.accent}; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
-        .hero-stack-container:hover .stack-card:nth-child(2) { margin-top: -24px; transform: translateY(0) scale(0.98) !important; opacity: 1; border-color: ${c.accent}; }
-        .hero-stack-container:hover .stack-card:nth-child(3) { margin-top: -24px; transform: translateY(0) scale(0.96) !important; opacity: 1; border-color: ${c.accent}; }
+        /* KHUSUS DESKTOP (Ada Kursor Mouse): Kembalikan CSS Transition untuk efek Hover */
+        @media (hover: hover) and (pointer: fine) {
+          .stack-card {
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, margin 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+          }
+
+          .hero-stack-container:hover .stack-card:nth-child(1) { transform: translateY(-8px) scale(1) !important; border-color: ${c.accent}; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
+          .hero-stack-container:hover .stack-card:nth-child(2) { margin-top: -24px; transform: translateY(0) scale(0.98) !important; opacity: 1; border-color: ${c.accent}; }
+          .hero-stack-container:hover .stack-card:nth-child(3) { margin-top: -24px; transform: translateY(0) scale(0.96) !important; opacity: 1; border-color: ${c.accent}; }
+        }
 
         .stack-card:hover .stack-arrow {
           transform: rotate(-45deg);
@@ -312,7 +324,7 @@ export function Hero({ theme, tickerData, articles = [], perspectives = [] }: an
     </section>
   );
 }
-// --- BATAS PERUBAHAN ---
+// --- BATAS PERUBAHAN ---// --- BATAS PERUBAHAN ---
 
 export function Ticker({ theme, tickerData }: any) {
   const c = T[theme];
