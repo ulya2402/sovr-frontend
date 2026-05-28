@@ -73,14 +73,14 @@ function VaultCard({ tool, theme, onClick }: any) {
   );
 }
 
-// ==========================================
-// 2. VAULT GRID (DENGAN FILTER KATEGORI)
-// ==========================================
+
+// --- AWAL PERUBAHAN: src/components/Vault.tsx (Fungsi VaultGrid) ---
 export function VaultGrid({ tools, theme }: any) {
   const c = T[theme];
   const [activeCategory, setActiveCategory] = useState("Semua");
+  
   const categories = ["Semua", "Chat", "Agent", "Productivity", "Image", "Video", "Other"];
-
+  
   const filteredTools = activeCategory === "Semua" 
     ? tools 
     : tools?.filter((t: any) => t.category?.toLowerCase() === activeCategory.toLowerCase());
@@ -94,28 +94,35 @@ export function VaultGrid({ tools, theme }: any) {
   };
 
   return (
-    <div style={{ animation: "fadeIn 0.6s ease-out" }}>
-      <div style={{ textAlign: "center", padding: "0 0 2rem" }}>
-        <h2 style={MR({ fontSize: "clamp(2.5rem, 8vw, 3.5rem)", fontWeight: 800, color: c.text, letterSpacing: "-0.04em", margin: 0, textTransform: "uppercase" })}>
-          Vault<span style={{ color: c.accent }}>.</span>
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      <style>{`
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        @keyframes smoothFadeUp {
+          0% { opacity: 0; transform: translateY(35px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+      
+      <div style={{ textAlign: "center", padding: "2.5rem 0", marginBottom: "2rem", borderBottom: `1px solid ${c.border}`, animation: "smoothFadeUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) both" }}>
+        <h2 style={MR({ fontSize: "clamp(2rem, 5vw, 2.5rem)", fontWeight: 800, color: c.text, lineHeight: 1.15, margin: "0 0 0.5rem 0", letterSpacing: "-0.03em", textTransform: "uppercase" })}>
+          Vault<span style={{ color: c.textMuted }}>.</span>
         </h2>
-        <p style={MR({ fontWeight: 600, fontSize: "0.95rem", color: c.textSub, opacity: 0.6, marginTop: "0.5rem" })}>
+        <p style={MR({ fontWeight: 500, fontSize: "0.9rem", color: c.textSub, letterSpacing: "0.01em", margin: 0 })}>
           Temukan berbagai aplikasi AI terbaik yang sudah kami pilih khusus untuk anda.
         </p>
       </div>
-
-      <style>{`.hide-scroll::-webkit-scrollbar { display: none; }`}</style>
-      <div className="hide-scroll" style={{ width: "100%", overflowX: "auto", paddingBottom: "1.5rem", marginBottom: "1.5rem" }}>
+      
+      <div className="hide-scroll" style={{ width: "100%", overflowX: "auto", paddingBottom: "1.5rem", marginBottom: "1.5rem", animation: "smoothFadeUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) both", animationDelay: "75ms" }}>
         <div style={{ display: "flex", gap: 10, width: "max-content", margin: "0 auto", padding: "0 2px" }}>
           {categories.map(cat => (
             <button 
               key={cat} 
-              onClick={() => setActiveCategory(cat)} 
-              style={MR({ 
-                fontSize: "0.65rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", 
-                color: activeCategory === cat ? c.bg : c.textMuted, 
-                background: activeCategory === cat ? c.accent : "transparent", 
-                border: `1px solid ${activeCategory === cat ? c.accent : c.border}`, 
+              onClick={() => setActiveCategory(cat)}
+              style={MR({
+                fontSize: "0.65rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase",
+                color: activeCategory === cat ? c.bg : c.textMuted,
+                background: activeCategory === cat ? c.accent : "transparent",
+                border: `1px solid ${activeCategory === cat ? c.accent : c.border}`,
                 borderRadius: 100, padding: "0.5rem 1.25rem", cursor: "pointer", transition: "all 0.2s",
                 whiteSpace: "nowrap"
               })}
@@ -131,9 +138,8 @@ export function VaultGrid({ tools, theme }: any) {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1.5rem" }}>
           {filteredTools.map((tool: any, i: number) => (
-            <div key={tool.id} style={{ animation: `slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${i * 0.05}s both` }}>
-               {/* 🔥 FIX: Mengirim seluruh data tool, bukan hanya id */}
-               <VaultCard tool={tool} theme={theme} onClick={() => handleOpenDetail(tool)} />
+            <div key={tool.id} style={{ animation: `smoothFadeUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) both`, animationDelay: `${150 + (i * 75)}ms`, willChange: "opacity, transform" }}>
+              <VaultCard tool={tool} theme={theme} onClick={() => handleOpenDetail(tool)} />
             </div>
           ))}
         </div>
@@ -141,6 +147,7 @@ export function VaultGrid({ tools, theme }: any) {
     </div>
   );
 }
+// --- BATAS PERUBAHAN ---
 
 // ==========================================
 // 3. VAULT DETAIL (HALAMAN KHUSUS + RELATED TOOLS)

@@ -44,6 +44,8 @@ function formatTime(createdAt: string, publishedDate: string) {
 // --- AWAL PERUBAHAN: Komponen InlinePerspectives ala Every.to ---
 // --- AWAL PERUBAHAN: Komponen InlinePerspectives dengan Eyebrow Text ---
 // --- AWAL PERUBAHAN: Komponen InlinePerspectives ---
+// --- AWAL PERUBAHAN: src/App.tsx (Komponen InlinePerspectives) ---
+// --- AWAL PERUBAHAN: src/App.tsx (Komponen InlinePerspectives) ---
 function InlinePerspectives({ perspectives, theme }: any) {
   const c = T[theme];
   const latest = perspectives.slice(0, 3);
@@ -94,7 +96,7 @@ function InlinePerspectives({ perspectives, theme }: any) {
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "0.4rem" }}>
               <span style={{ fontSize: "0.65rem", fontWeight: 800, color: c.accent, textTransform: "uppercase", letterSpacing: "0.05em" }}>{hero.category}</span>
-              <span style={{ fontSize: "0.65rem", color: c.textMuted }}>•</span>
+              <span style={{ fontSize: "0.65rem", color: c.textMuted }}> </span>
               <span style={{ fontSize: "0.65rem", color: c.textMuted, fontWeight: 600 }}>By {hero.author}</span>
             </div>
             <h4 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.3rem", fontWeight: 800, color: c.text, margin: 0, lineHeight: 1.3, letterSpacing: "-0.01em" }}>
@@ -142,11 +144,37 @@ function InlinePerspectives({ perspectives, theme }: any) {
             ))}
           </div>
         )}
+
+        <div style={{ marginTop: "1.5rem", display: "flex", justifyContent: "center" }}>
+          <button
+            onClick={() => {
+              window.history.pushState({}, '', `/perspectives`);
+              window.dispatchEvent(new Event('popstate'));
+              setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 50);
+            }}
+            style={{
+              display: "flex", alignItems: "center", gap: 8, fontFamily: "'Manrope', sans-serif",
+              fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+              color: c.bg,
+              background: c.text,
+              border: `1px solid ${c.text}`,
+              borderRadius: 100, padding: "0.75rem 2rem", cursor: "pointer", transition: "all 0.2s"
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
+          >
+            Jelajahi Semua Deep Dives <i className="ri-arrow-right-line" style={{ fontSize: "0.9rem" }} />
+          </button>
+        </div>
       </div>
     </div>
   );
 }
-
+// --- BATAS PERUBAHAN ---
 
 function InlineNewsletter({ theme }: any) {
   const c = T[theme];
@@ -417,32 +445,39 @@ function SmoothReveal({ children, delay = 0 }: any) {
 }
 // --- BATAS PERUBAHAN ---
 
+// --- AWAL PERUBAHAN: src/App.tsx (Fungsi EditorSection) ---
 function EditorSection({ theme, articles }: any) {
   const c = T[theme];
   const picks = articles.filter((a: any) => a.featured);
-  const [vis, setVis] = useState(false);
-  useEffect(() => { const id = requestAnimationFrame(() => setVis(true)); return () => cancelAnimationFrame(id); }, []);
 
   if (picks.length === 0) {
     return <div style={{ textAlign: "center", padding: "4rem 0", color: c.textMuted, fontFamily: "'Manrope', sans-serif", fontWeight: 500 }}>Belum ada berita Pilihan Editor saat ini.</div>;
   }
 
   return (
-    <div style={{ opacity: vis ? 1 : 0, transform: vis ? "translateY(0)" : "translateY(20px)", transition: "all 0.5s cubic-bezier(0.16, 1, 0.3, 1)" }}>
-      <div style={{ textAlign: "center", padding: "2.5rem 0", marginBottom: "2rem", borderBottom: `1px solid ${c.border}` }}>
-        <h2 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "clamp(2rem, 5vw, 2.5rem)", fontWeight: 800, color: c.text, lineHeight: 1.15, marginBottom: "0.5rem", letterSpacing: "-0.03em", textTransform: "uppercase" }}>Editorial <span style={{ color: c.textMuted }}>Picks</span></h2>
-        <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 500, fontSize: "0.9rem", color: c.textSub, letterSpacing: "0.01em" }}>Feed pilihan dari tim redaksi SOVR.</p>
-      </div>
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      <SmoothReveal delay={0}>
+        <div style={{ textAlign: "center", padding: "2.5rem 0", marginBottom: "2rem", borderBottom: `1px solid ${c.border}` }}>
+          <h2 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "clamp(2rem, 5vw, 2.5rem)", fontWeight: 800, color: c.text, lineHeight: 1.15, marginBottom: "0.5rem", letterSpacing: "-0.03em", textTransform: "uppercase" }}>Editorial <span style={{ color: c.textMuted }}>Picks</span></h2>
+          <p style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 500, fontSize: "0.9rem", color: c.textSub, letterSpacing: "0.01em" }}>Feed pilihan dari tim redaksi SOVR.</p>
+        </div>
+      </SmoothReveal>
+
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {picks.map((card: any, i: number) => (
-          <div id={`article-${card.id}`} key={card.id}>
-            <EditorCard card={card} theme={theme} idx={i} />
-          </div>
+          <SmoothReveal key={card.id} delay={150 + (i * 75)}>
+            <div id={`article-${card.id}`}>
+              <EditorCard card={card} theme={theme} idx={i} />
+            </div>
+          </SmoothReveal>
         ))}
       </div>
-      <div style={{ textAlign: "center", marginTop: "3rem", paddingTop: "2rem", borderTop: `1px solid ${c.border}` }}>
-        <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.2em", color: c.textMuted, textTransform: "uppercase" }}>End of Curation</span>
-      </div>
+
+      <SmoothReveal delay={150 + (picks.length * 75)}>
+        <div style={{ textAlign: "center", marginTop: "3rem", paddingTop: "2rem", borderTop: `1px solid ${c.border}` }}>
+          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.2em", color: c.textMuted, textTransform: "uppercase" }}>End of Curation</span>
+        </div>
+      </SmoothReveal>
     </div>
   );
 }
@@ -467,7 +502,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   
   const [visibleCount, setVisibleCount] = useState(3);
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
   
   // State Router URL
   const [currentVaultSlug, setCurrentVaultSlug] = useState<string | null>(null); 
@@ -630,8 +665,8 @@ export default function App() {
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: c.bg }}>
       <Navbar theme={theme} setTheme={setTheme} mainTab={mainTab} />
       
-      {mainTab !== "Perspectives" && !currentVaultSlug && !currentLegalSlug && !currentPerspectiveSlug && <Ticker theme={theme} tickerData={tickerData} />}
-      {mainTab !== "Perspectives" && !currentVaultSlug && !currentLegalSlug && !currentPerspectiveSlug && <Hero theme={theme} tickerData={tickerData} />}
+      {mainTab === "Feed" && !currentVaultSlug && !currentLegalSlug && !currentPerspectiveSlug && <Ticker theme={theme} tickerData={tickerData} />}
+      {mainTab === "Feed" && !currentVaultSlug && !currentLegalSlug && !currentPerspectiveSlug && <Hero theme={theme} tickerData={tickerData} />}
       
       {/* PERHATIKAN: minHeight dihapus dan diganti dengan flex: 1 */}
       <section id="feed" style={{ background: c.bg, flex: 1, transition: "background 0.4s" }}>
@@ -785,25 +820,23 @@ export default function App() {
                 {hasMore && !loading && (
                   <div style={{ display: "flex", justifyContent: "center", margin: "2rem 0 1rem 0" }}>
                     <button 
-                      onClick={() => setVisibleCount(prev => prev === 3 ? 10 : prev + itemsPerPage)} 
+                      onClick={() => setVisibleCount(prev => prev + itemsPerPage)}
                       style={{ 
                         display: "flex", alignItems: "center", gap: 8, fontFamily: "'Manrope', sans-serif", 
                         fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", 
-                        color: visibleCount === 3 ? c.bg : c.text, 
-                        background: visibleCount === 3 ? c.text : "transparent", 
-                        border: `1px solid ${visibleCount === 3 ? c.text : c.border}`, 
+                        color: c.bg, 
+                        background: c.text, 
+                        border: `1px solid ${c.text}`, 
                         borderRadius: 100, padding: "0.75rem 2rem", cursor: "pointer", transition: "all 0.2s" 
-                      }} 
+                      }}
                       onMouseEnter={e => { 
-                        if(visibleCount !== 3) e.currentTarget.style.borderColor = c.accent; 
-                        else e.currentTarget.style.transform = "translateY(-2px)";
-                      }} 
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                      }}
                       onMouseLeave={e => { 
-                        if(visibleCount !== 3) e.currentTarget.style.borderColor = c.border; 
-                        else e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.transform = "translateY(0)";
                       }}
                     >
-                      {visibleCount === 3 ? "Tampilkan Feed Lainnya" : "Load More"} <i className="ri-arrow-down-line" style={{ fontSize: "0.9rem" }} />
+                      Tampilkan Feed Lainnya <i className="ri-arrow-down-line" style={{ fontSize: "0.9rem" }} />
                     </button>
                   </div>
                 )}

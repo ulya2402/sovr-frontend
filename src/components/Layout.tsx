@@ -122,11 +122,11 @@ export function Navbar({ theme, setTheme, mainTab }: any) {
     window.dispatchEvent(new Event('popstate'));
     
     setTimeout(() => {
-      if (tabName === "Perspectives") {
-        // Halaman Perspectives eksklusif: Langsung diam di paling atas layar
+      if (tabName !== "Feed") {
+        // Halaman Perspectives, Vault, Pilihan Editor: Langsung diam di paling atas layar
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
-        // Feed, Editor Picks, dan Vault: Scroll turun sedikit melewati Hero
+        // Khusus Feed: Scroll turun sedikit melewati Hero
         const feedEl = document.getElementById("feed");
         if (feedEl) {
           const y = feedEl.getBoundingClientRect().top + window.scrollY - 40;
@@ -193,12 +193,8 @@ export function Footer({ theme }: { theme: string }) {
     window.history.pushState({}, '', path);
     window.dispatchEvent(new Event('popstate'));
     
-    // Auto-scroll ke atas area konten biar transisinya mulus
-    const feedEl = document.getElementById("feed");
-    if (feedEl) {
-      const y = feedEl.getBoundingClientRect().top + window.scrollY - 40;
-      window.scrollTo({ top: y, behavior: "smooth" });
-    }
+    // Auto-scroll ke paling atas layar
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
