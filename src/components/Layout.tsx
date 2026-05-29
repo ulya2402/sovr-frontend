@@ -70,6 +70,20 @@ export function Hero({ theme, tickerData, articles = [], perspectives = [] }: an
           overflow: hidden;
         }
 
+        .ai-neural-grid {
+          position: absolute;
+          inset: 0;
+          background-size: 60px 60px;
+          background-image: 
+            linear-gradient(to right, ${c.border} 1px, transparent 1px),
+            linear-gradient(to bottom, ${c.border} 1px, transparent 1px);
+          opacity: ${theme === 'dark' ? 0.15 : 0.3};
+          mask-image: radial-gradient(circle at 50% 10%, black 0%, transparent 70%);
+          -webkit-mask-image: radial-gradient(circle at 50% 10%, black 0%, transparent 70%);
+          pointer-events: none;
+          z-index: 0;
+        }
+
         .ambient-core-1 {
           position: absolute;
           top: -10%; left: -10%;
@@ -166,7 +180,8 @@ export function Hero({ theme, tickerData, articles = [], perspectives = [] }: an
           scroll-snap-type: x mandatory;
           scroll-behavior: smooth;
           -webkit-overflow-scrolling: touch;
-          padding-bottom: 1rem;
+          padding: 1rem 0.5rem 3rem 0.5rem;
+          margin: 0 -0.5rem;
         }
 
         .carousel-track::-webkit-scrollbar {
@@ -286,6 +301,27 @@ export function Hero({ theme, tickerData, articles = [], perspectives = [] }: an
           color: ${c.accent};
         }
 
+        .btn-feed-link {
+          padding: 1.25rem 1.75rem;
+          text-align: center;
+          text-decoration: none;
+          color: ${c.text};
+          font-family: 'Manrope', sans-serif;
+          font-size: 0.75rem;
+          font-weight: 800;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          background: ${theme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'};
+          border-top: 1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'};
+          transition: all 0.3s ease;
+        }
+
+        .btn-feed-link:hover {
+          background: ${theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'};
+          color: ${c.accent};
+          letter-spacing: 0.15em;
+        }
+
         .crypto-dock {
           display: flex;
           flex-wrap: wrap;
@@ -330,6 +366,7 @@ export function Hero({ theme, tickerData, articles = [], perspectives = [] }: an
         }
       `}</style>
 
+      <div className="ai-neural-grid" />
       <div className="ambient-core-1" />
       <div className="ambient-core-2" />
 
@@ -382,7 +419,7 @@ export function Hero({ theme, tickerData, articles = [], perspectives = [] }: an
                     <div className="glass-content">
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.15em", color: c.bg, background: c.text, padding: "0.3rem 0.8rem", borderRadius: "100px" }}>
-                          Oleh
+                          REPORT
                         </span>
                         <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.75rem", fontWeight: 800, color: c.text, textTransform: "uppercase", letterSpacing: "0.05em" }}>
                           {feat.author}
@@ -428,7 +465,7 @@ export function Hero({ theme, tickerData, articles = [], perspectives = [] }: an
               </div>
             ))}
             
-            <a href="#feed" style={{ padding: "1.25rem 1.75rem", textAlign: "center", textDecoration: "none", color: c.text, fontFamily: "'Manrope', sans-serif", fontSize: "0.75rem", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", background: c.accentDim, transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.opacity = "0.8"} onMouseLeave={e => e.currentTarget.style.opacity = "1"}>
+            <a href="#feed" className="btn-feed-link">
               Buka Semua Feed &rarr;
             </a>
           </div>

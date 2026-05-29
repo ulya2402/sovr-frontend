@@ -179,7 +179,7 @@ function InlinePerspectives({ perspectives, theme }: any) {
 
 function InlineNewsletter({ theme }: any) {
   const c = T[theme];
-  const targetLink = "https://t.me/channel_telegram_anda"; 
+  const targetLink = "https://t.me/readsovr"; 
 
   const handleJoinClick = () => {
     window.open(targetLink, "_blank", "noopener,noreferrer");
