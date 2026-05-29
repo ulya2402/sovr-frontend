@@ -1,330 +1,459 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { T } from "../theme";
 
-// --- AWAL PERUBAHAN: src/components/Layout.tsx (Fungsi Hero - Asymmetric Bento) ---
-// --- AWAL PERUBAHAN: src/components/Layout.tsx (Fungsi Hero - Stack 3 Kartu) ---
-// --- AWAL PERUBAHAN: src/components/Layout.tsx (Fungsi Hero - Tumpukan Buku Kompak) ---
-// --- AWAL PERUBAHAN: src/components/Layout.tsx (Fungsi Hero - Mobile Scroll Parallax) ---
-// --- AWAL PERUBAHAN: src/components/Layout.tsx (Fungsi Hero - Anti Lag Version) ---
 export function Hero({ theme, tickerData, articles = [], perspectives = [] }: any) {
   const c = T[theme];
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const heroRef = useRef<HTMLElement>(null);
   const [now, setNow] = useState(new Date());
 
-  useEffect(() => { const t = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(t); }, []);
-
-  // Animasi Background Canvas
-  useEffect(() => {
-    const canvas = canvasRef.current; if (!canvas) return;
-    const ctx = canvas.getContext("2d"); let W: number, H: number, raf: number;
-    const resize = () => { W = canvas.width = canvas.offsetWidth; H = canvas.height = canvas.offsetHeight; };
-    resize();
-    const accentRgb = theme === "dark" ? "247,247,247" : "56,56,56";
-    const pts = Array.from({ length: 25 }, () => ({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - .5) * .15, vy: (Math.random() - .5) * .15, r: Math.random() * 1 + .5, a: Math.random() * .2 + .05 }));
-    const draw = () => {
-      ctx!.clearRect(0, 0, W, H);
-      pts.forEach(p => { p.x += p.vx; p.y += p.vy; if (p.x < 0) p.x = W; if (p.x > W) p.x = 0; if (p.y < 0) p.y = H; if (p.y > H) p.y = 0; ctx!.beginPath(); ctx!.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx!.fillStyle = `rgba(${accentRgb},${p.a})`; ctx!.fill(); });
-      pts.forEach((a, i) => pts.slice(i + 1).forEach(b => { const d = Math.hypot(a.x - b.x, a.y - b.y); if (d < 120) { ctx!.beginPath(); ctx!.moveTo(a.x, a.y); ctx!.lineTo(b.x, b.y); ctx!.strokeStyle = `rgba(${accentRgb},${.03 * (1 - d / 120)})`; ctx!.lineWidth = .5; ctx!.stroke(); } }));
-      raf = requestAnimationFrame(draw);
-    };
-    draw(); window.addEventListener("resize", resize);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize); };
-  }, [theme]);
-
-  // Efek Parallax Scroll SUPER SMOOTH (Anti Lag via requestAnimationFrame)
-  useEffect(() => {
-    let ticking = false;
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          if (heroRef.current) {
-            // Batas maksimal scroll efek mekar (250) agar tidak bablas
-            const sy = Math.min(window.scrollY, 250);
-            heroRef.current.style.setProperty('--sy', sy.toString());
-          }
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+  useEffect(() => { 
+    const t = setInterval(() => setNow(new Date()), 1000); 
+    return () => clearInterval(t); 
   }, []);
 
-  const dateStr = now.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const heroFeatures = perspectives && perspectives.length > 0 
+    ? perspectives.slice(0, 4).map((p: any) => ({ ...p, _type: 'perspective' })) 
+    : [];
 
-  const btc = tickerData?.coins?.find((c: any) => c.symbol === "BTC") || { price: "...", change: "...", isUp: true };
-  const eth = tickerData?.coins?.find((c: any) => c.symbol === "ETH") || { price: "...", change: "...", isUp: true };
-  const fng = tickerData?.fng || { value: "...", classification: "Memuat" };
-
+  const dateStr = now.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).toUpperCase();
+  const btc = tickerData?.coins?.find((coin: any) => coin.symbol === "BTC") || { price: "...", change: "...", isUp: true };
+  const eth = tickerData?.coins?.find((coin: any) => coin.symbol === "ETH") || { price: "...", change: "...", isUp: true };
+  const fng = tickerData?.fng || { value: "...", classification: "MEMUAT" };
+  
   const statCards = [
-    { label: "Bitcoin", val: `$${btc.price}`, ch: btc.change, up: btc.isUp, icon: "ri-btc-line" },
-    { label: "Ethereum", val: `$${eth.price}`, ch: eth.change, up: eth.isUp, icon: "ri-eth-line" },
-    { label: "Market Sentimen", val: fng.value, ch: fng.classification, up: fng.classification.toLowerCase().includes("greed"), icon: "ri-pulse-line" }
+    { label: "BTC/USD", val: `$${btc.price}`, ch: btc.change, up: btc.isUp },
+    { label: "ETH/USD", val: `$${eth.price}`, ch: eth.change, up: eth.isUp },
+    { label: "MARKET SENTIMEN", val: fng.value, ch: fng.classification.toUpperCase(), up: fng.classification.toLowerCase().includes("greed") }
   ];
 
   const slugify = (text: string) => text ? text.toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
-
-  const topItems: any[] = [];
-  if (perspectives && perspectives.length > 0) {
-    topItems.push({ ...perspectives[0], _type: 'perspective', _icon: 'ri-book-open-line', _cat: 'Perspectives' });
-  }
   
   const featuredArts = articles ? articles.filter((a: any) => a.featured) : [];
   const regularArts = articles ? articles.filter((a: any) => !a.featured) : [];
-  const availableArts = [...featuredArts, ...regularArts];
-  
-  for (let i = 0; i < availableArts.length && topItems.length < 3; i++) {
-    const a = availableArts[i];
+  const availableArts = [...featuredArts, ...regularArts].slice(0, 3).map((a: any) => {
     let icon = "ri-flashlight-line";
     if (a.cat === "ai") icon = "ri-sparkling-2-line";
     if (a.cat === "kripto") icon = "ri-coin-line";
     if (a.cat === "defi") icon = "ri-swap-line";
-    topItems.push({ ...a, _type: 'article', _icon: icon, _cat: a.tag || a.category });
-  }
+    return { ...a, _type: 'article', _icon: icon, _cat: a.tag || a.category };
+  });
 
   const handleCardClick = (item: any, e: React.MouseEvent) => {
     e.preventDefault();
+    if (!item) return;
     const path = item._type === 'perspective' ? `/perspectives/${slugify(item.title)}` : `/feed/${slugify(item.title)}`;
     window.history.pushState({}, '', path);
     window.dispatchEvent(new Event('popstate'));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const scrollToFeed = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const feedEl = document.getElementById("feed");
-    if (feedEl) {
-      window.scrollTo({ top: feedEl.getBoundingClientRect().top - 40, behavior: "smooth" });
-    }
+    
+    window.scrollTo(0, 0);
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 50);
   };
 
   return (
-    <section ref={heroRef} style={{ position: "relative", minHeight: "100vh", display: "flex", flexDirection: "column", background: c.bg, paddingTop: 56, overflow: "hidden" }}>
+    <section style={{ position: "relative", display: "flex", flexDirection: "column", background: c.bg, paddingTop: 56, overflow: "hidden", minHeight: "100vh" }}>
       <style>{`
-        @keyframes slideUpFade {
-          0% { opacity: 0; transform: translateY(30px); }
-          100% { opacity: 1; transform: translateY(0); }
+        @keyframes cyberFadeIn {
+          0% { opacity: 0; transform: translateY(30px) scale(0.98); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes pulseGlow {
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 0.8; }
         }
         
-        .hero-bento {
+        .clamped-title {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .ambient-core-1 {
+          position: absolute;
+          top: -10%; left: -10%;
+          width: 50vw; height: 50vw;
+          background: radial-gradient(circle, ${c.accent}20 0%, transparent 60%);
+          filter: blur(80px);
+          z-index: 0;
+          pointer-events: none;
+          animation: pulseGlow 8s ease-in-out infinite;
+        }
+
+        .ambient-core-2 {
+          position: absolute;
+          bottom: 10%; right: -10%;
+          width: 40vw; height: 40vw;
+          background: radial-gradient(circle, ${theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'} 0%, transparent 60%);
+          filter: blur(60px);
+          z-index: 0;
+          pointer-events: none;
+        }
+        
+        .hero-dashboard {
           display: flex;
           flex-direction: column;
-          gap: 3rem;
           flex: 1;
-          padding: 5.5rem 1.5rem 3rem;
-          max-width: 1240px;
+          padding: clamp(3rem, 7vh, 5rem) 1.5rem 4rem;
+          max-width: 1280px;
           margin: 0 auto;
           width: 100%;
           z-index: 2;
+          gap: clamp(2rem, 5vh, 3.5rem);
         }
 
-        .hero-left {
+        .ai-header {
           display: flex;
           flex-direction: column;
-          justify-content: center;
-          animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-          will-change: transform, opacity;
+          gap: 1.25rem;
+          animation: cyberFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
-        .hero-right {
-          display: flex;
+        .status-badge {
+          display: inline-flex;
           align-items: center;
-          justify-content: center;
-          animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
-          will-change: transform, opacity;
-          position: relative;
+          gap: 8px;
+          padding: 0.4rem 1rem;
+          border: 1px solid ${c.border};
+          border-radius: 100px;
+          background: ${theme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'};
+          backdrop-filter: blur(10px);
+          width: fit-content;
         }
 
-        /* --- STYLING BUKU TERTUMPUK --- */
-        .hero-stack-container {
-          display: flex;
-          flex-direction: column;
-          width: 100%;
-          max-width: 420px;
-          position: relative;
-          will-change: transform;
+        .holographic-logo {
+          font-family: 'Manrope', sans-serif;
+          font-size: clamp(4rem, 14vw, 8.5rem);
+          font-weight: 900;
+          line-height: 0.9;
+          letter-spacing: -0.04em;
+          margin: 0;
+          background: linear-gradient(135deg, ${c.text} 30%, ${c.accent} 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          filter: drop-shadow(0 4px 12px ${c.accent}30);
         }
 
-        .stack-card {
-          background: ${theme === 'dark' ? 'rgba(35,35,35,0.92)' : 'rgba(255,255,255,0.92)'};
-          backdrop-filter: blur(24px);
-          -webkit-backdrop-filter: blur(24px);
-          border: 1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'};
-          border-radius: 20px;
-          padding: 1.5rem;
-          text-decoration: none;
+        .ai-desc {
+          font-family: 'Manrope', sans-serif;
+          font-size: clamp(1.05rem, 2vw, 1.2rem);
+          color: ${c.textSub};
+          font-weight: 500;
+          line-height: 1.6;
+          margin: 0;
+          max-width: 600px;
+        }
+
+        .terminal-grid {
           display: flex;
           flex-direction: column;
-          gap: 0.8rem;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-          position: relative;
+          gap: 1.5rem;
+          animation: cyberFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+        }
+
+        .carousel-viewport {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+
+        .carousel-track {
+          display: flex;
+          gap: 1.5rem;
+          overflow-x: auto;
+          overflow-y: hidden;
+          scroll-snap-type: x mandatory;
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
+          padding-bottom: 1rem;
+        }
+
+        .carousel-track::-webkit-scrollbar {
+          height: 6px;
+        }
+        .carousel-track::-webkit-scrollbar-track {
+          background: ${theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'};
+          border-radius: 100px;
+        }
+        .carousel-track::-webkit-scrollbar-thumb {
+          background: ${theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'};
+          border-radius: 100px;
+        }
+        .carousel-track::-webkit-scrollbar-thumb:hover {
+          background: ${c.accent};
+        }
+
+        .glass-card {
+          flex: 0 0 100%;
+          scroll-snap-align: start;
+          scroll-snap-stop: always;
+          background: ${theme === 'dark' ? 'rgba(20,20,20,0.4)' : 'rgba(255,255,255,0.6)'};
+          border: 1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'};
+          border-radius: 24px;
+          overflow: hidden;
           cursor: pointer;
-          will-change: transform;
-          
-          /* OPTIMASI LAG: Hapus transisi 'transform' & 'margin' di mobile agar JS & CSS tidak bentrok! */
-          transition: opacity 0.3s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+          display: flex;
+          flex-direction: column;
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+          position: relative;
         }
 
-        /* Posisi Mekar Berdasarkan Variabel Scroll (--sy) - Mulus menempel di jari pengguna */
-        .stack-card:nth-child(1) { 
-          z-index: 3; 
-          transform: translateY(calc(var(--sy, 0) * -0.05px)) scale(1); 
-        }
-        .stack-card:nth-child(2) { 
-          z-index: 2; margin-top: -110px; 
-          transform: translateY(calc(12px + var(--sy, 0) * 0.18px)) scale(0.95); 
-          opacity: 0.85; 
-        }
-        .stack-card:nth-child(3) { 
-          z-index: 1; margin-top: -110px; 
-          transform: translateY(calc(24px + var(--sy, 0) * 0.4px)) scale(0.90); 
-          opacity: 0.6; 
+        .glass-card:hover {
+          border-color: ${c.accent};
+          transform: translateY(-5px);
+          box-shadow: 0 20px 40px ${theme === 'dark' ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.08)'}, 
+                      0 0 0 1px ${c.accent}40 inset;
         }
 
-        /* KHUSUS DESKTOP (Ada Kursor Mouse): Kembalikan CSS Transition untuk efek Hover */
-        @media (hover: hover) and (pointer: fine) {
-          .stack-card {
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, margin 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
-          }
-
-          .hero-stack-container:hover .stack-card:nth-child(1) { transform: translateY(-8px) scale(1) !important; border-color: ${c.accent}; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
-          .hero-stack-container:hover .stack-card:nth-child(2) { margin-top: -24px; transform: translateY(0) scale(0.98) !important; opacity: 1; border-color: ${c.accent}; }
-          .hero-stack-container:hover .stack-card:nth-child(3) { margin-top: -24px; transform: translateY(0) scale(0.96) !important; opacity: 1; border-color: ${c.accent}; }
+        .vision-img-wrapper {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 16/10;
+          overflow: hidden;
+          background: ${c.accentDim};
+          border-radius: 24px 24px 0 0;
         }
 
-        .stack-card:hover .stack-arrow {
-          transform: rotate(-45deg);
+        .vision-img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .glass-card:hover .vision-img {
+          transform: scale(1.05);
+        }
+
+        .card-hud-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to top, ${theme === 'dark' ? '#0a0a0a' : '#ffffff'} 0%, transparent 100%);
+          opacity: 0.8;
+          z-index: 10;
+          pointer-events: none;
+        }
+
+        .glass-content {
+          padding: 2rem;
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          position: relative;
+          z-index: 12;
+          margin-top: -3rem; 
+        }
+
+        .intel-panel {
+          display: flex;
+          flex-direction: column;
+          border: 1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'};
+          border-radius: 24px;
+          background: ${theme === 'dark' ? 'rgba(20,20,20,0.4)' : 'rgba(255,255,255,0.6)'};
+          overflow: hidden;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+        }
+
+        .intel-header {
+          padding: 1.5rem 1.75rem;
+          border-bottom: 1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'};
+        }
+
+        .intel-item {
+          padding: 1.5rem 1.75rem;
+          border-bottom: 1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'};
+          cursor: pointer;
+          transition: all 0.3s;
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .intel-item:last-child {
+          border-bottom: none;
+        }
+
+        .intel-item:hover {
+          background: ${theme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'};
+          padding-left: 2.25rem;
+        }
+
+        .intel-item:hover .intel-title {
           color: ${c.accent};
         }
 
-        /* --- STYLING MARKET GRID --- */
-        .hero-market-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          border-top: 1px solid ${c.border};
-          z-index: 2;
+        .crypto-dock {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 1rem;
+          animation: cyberFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
         }
 
-        .hero-stat-item {
-          padding: 1.5rem 2rem;
-          border-bottom: 1px solid ${c.border};
-          background: ${theme === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.4)'};
-          backdrop-filter: blur(10px);
+        .dock-pill {
+          flex: 1;
+          min-width: 200px;
+          background: ${theme === 'dark' ? 'rgba(20,20,20,0.5)' : 'rgba(255,255,255,0.7)'};
+          border: 1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'};
+          border-radius: 20px;
+          padding: 1.25rem 1.75rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.4rem;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+          transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .dock-pill:hover {
+          transform: translateY(-3px);
+          border-color: ${c.accent};
         }
 
         @media (min-width: 1024px) {
-          .hero-bento {
+          .terminal-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            align-items: center;
-            padding: 0 2rem;
-            gap: 5rem;
+            grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
+            gap: 2rem;
+            align-items: stretch;
           }
-          .hero-stat-item {
-            border-bottom: none;
-            border-right: 1px solid ${c.border};
+          .glass-card {
+            height: 100%;
           }
-          .hero-stat-item:last-child {
-            border-right: none;
+          .vision-img-wrapper {
+            aspect-ratio: auto;
+            flex: 1;
+            min-height: 380px;
           }
         }
       `}</style>
 
-      <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 0, opacity: 0.4 }} />
-      <div style={{ position: "absolute", top: "5%", left: "50%", transform: "translateX(-50%)", width: "80vw", height: "80vh", background: c.accent, opacity: 0.05, filter: "blur(120px)", borderRadius: "50%", zIndex: 0, pointerEvents: "none" }} />
+      <div className="ambient-core-1" />
+      <div className="ambient-core-2" />
 
-      <div className="hero-bento">
-        <div className="hero-left">
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: "2rem" }}>
-            <span style={{ width: 8, height: 8, background: c.accent, borderRadius: "50%", animation: "blink 2s infinite" }} />
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: c.textMuted }}>
+      <div className="hero-dashboard">
+        <div className="ai-header">
+          <div className="status-badge">
+            <span style={{ width: "6px", height: "6px", background: c.accent, borderRadius: "50%", animation: "pulseGlow 1.5s infinite" }} />
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.15em", color: c.textMuted }}>
               {dateStr}
             </span>
           </div>
-
-          <h1 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "clamp(3.5rem, 9vw, 7.5rem)", fontWeight: 900, color: c.text, lineHeight: 0.9, letterSpacing: "-0.04em", margin: "0 0 1.25rem 0" }}>
-            SOVR<span style={{ color: c.accent }}>.</span>
-          </h1>
           
-          <h2 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "clamp(1.5rem, 4vw, 2.8rem)", fontWeight: 800, color: c.text, lineHeight: 1.2, letterSpacing: "-0.02em", margin: "0 0 1.5rem 0" }}>
-            Insight In <span style={{ color: c.accent }}>Second.</span>
-          </h2>
-
-          <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.1rem", color: c.textSub, lineHeight: 1.6, fontWeight: 500, margin: "0 0 2.5rem 0", maxWidth: 450 }}>
-            Dapatkan berita terkini seputar kripto dan AI dalam satu platform yang terpercaya.
-          </p>
-
-          <a href="#feed" onClick={scrollToFeed} style={{ 
-            display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10, 
-            fontFamily: "'Space Mono', monospace", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", 
-            color: c.bg, background: c.text, border: `1px solid ${c.text}`, 
-            padding: "1rem 2.2rem", borderRadius: "100px", width: "fit-content", transition: "all 0.3s",
-            textDecoration: "none"
-          }} 
-          onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = `0 10px 20px ${theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`; }} 
-          onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
-            Jelajahi Feed <i className="ri-arrow-down-line" style={{ fontSize: "1.1rem" }} />
-          </a>
+          <div>
+            <h1 className="holographic-logo">SOVR.</h1>
+            <h2 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "clamp(1.4rem, 4vw, 2.4rem)", fontWeight: 800, color: c.text, lineHeight: "1.1", letterSpacing: "-0.02em", margin: "0.5rem 0 1rem 0" }}>
+              Insight In <span style={{ color: c.accent }}>Second.</span>
+            </h2>
+            <p className="ai-desc">
+              Portal Media masa depan. Dapatkan analisis mendalam seputar AI, Web3, dan Kripto.
+            </p>
+          </div>
         </div>
 
-        <div className="hero-right">
-          {topItems.length > 0 ? (
-            <div className="hero-stack-container">
-              {topItems.map((item, i) => (
-                <div key={i} className="stack-card" onClick={(e) => handleCardClick(item, e)}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.55rem", fontWeight: 700, letterSpacing: "0.15em", color: item._type === 'perspective' ? c.bg : c.accent, textTransform: "uppercase", background: item._type === 'perspective' ? c.accent : c.accentDim, padding: "0.3rem 0.8rem", borderRadius: "100px" }}>
-                      {item._cat}
-                    </span>
-                    <i className={item._icon} style={{ color: c.textMuted, fontSize: "1.2rem" }} />
-                  </div>
+        <div className="terminal-grid">
+          
+          <div className="carousel-viewport">
+            
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", padding: "0 0.5rem" }}>
+              <h4 style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.75rem", fontWeight: 700, color: c.text, letterSpacing: "0.1em", margin: 0, textTransform: "uppercase" }}>
+                Perspectives.
+              </h4>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.6rem", color: c.textMuted, letterSpacing: "0.1em", display: "flex", alignItems: "center", gap: "4px" }}>
+                GESER <i className="ri-arrow-right-line" />
+              </span>
+            </div>
 
-                  <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.15rem", fontWeight: 800, color: c.text, lineHeight: 1.35, letterSpacing: "-0.01em", margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                    {item.title}
-                  </h3>
-
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: "0.5rem" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 800, color: c.text, textTransform: "uppercase", letterSpacing: "0.05em" }}>{item.author}</span>
-                      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.55rem", color: c.textMuted }}>{item.time || item.published_date}</span>
+            <div className="carousel-track">
+              {heroFeatures.length > 0 ? (
+                heroFeatures.map((feat: any, idx: number) => (
+                  <div key={`feat-${idx}`} className="glass-card" onClick={(e) => handleCardClick(feat, e)}>
+                    <div className="vision-img-wrapper">
+                      <img 
+                        src={feat.image_url || `https://via.placeholder.com/800x450?text=SOVR+Deep+Dive`} 
+                        alt={feat.title} 
+                        className="vision-img"
+                      />
+                      <div className="card-hud-overlay" />
                     </div>
-                    <i className="ri-arrow-right-up-line stack-arrow" style={{ fontSize: "1.1rem", color: c.textMuted, transition: "all 0.3s" }} />
+                    
+                    <div className="glass-content">
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.15em", color: c.bg, background: c.text, padding: "0.3rem 0.8rem", borderRadius: "100px" }}>
+                          Oleh
+                        </span>
+                        <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.75rem", fontWeight: 800, color: c.text, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                          {feat.author}
+                        </span>
+                      </div>
+                      
+                      <h3 className="clamped-title" style={{ fontFamily: "'Manrope', sans-serif", fontSize: "clamp(1.5rem, 4vw, 2.4rem)", fontWeight: 800, color: c.text, lineHeight: "1.25", letterSpacing: "-0.02em", margin: 0 }}>
+                        {feat.title}
+                      </h3>
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="glass-card" style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "4rem", color: c.textMuted, fontFamily: "'Manrope', sans-serif", fontWeight: 600 }}>
+                  Sinkronisasi Database...
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="hero-stack-container" style={{ opacity: 0.5 }}>
-              <div className="stack-card">
-                <div style={{ height: 20, width: 120, background: c.border, borderRadius: 10, animation: "blink 1.5s infinite" }} />
-                <div style={{ height: 30, width: "100%", background: c.border, borderRadius: 10, animation: "blink 1.5s infinite" }} />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* --- Bottom Market Grid --- */}
-      <div className="hero-market-grid">
-        {statCards.map((s) => (
-          <div key={s.label} className="hero-stat-item">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem" }}>
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.15em", color: c.textMuted, textTransform: "uppercase" }}>{s.label}</span>
-              <i className={s.icon} style={{ fontSize: "1.1rem", color: c.textMuted }} />
-            </div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-              <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.6rem", color: c.text, fontWeight: 800, letterSpacing: "-0.03em" }}>{s.val}</span>
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.65rem", fontWeight: 700, color: s.up ? c.up : c.down, background: s.up ? (theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)') : 'transparent', padding: "4px 8px", borderRadius: "6px" }}>{s.ch}</span>
+              )}
             </div>
           </div>
-        ))}
+
+          <div className="intel-panel">
+            <div className="intel-header">
+              <h4 style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.75rem", fontWeight: 700, color: c.text, letterSpacing: "0.1em", margin: 0, textTransform: "uppercase" }}>
+                News Feed
+              </h4>
+            </div>
+            
+            {availableArts.map((item: any, i: number) => (
+              <div key={i} className="intel-item" onClick={(e) => handleCardClick(item, e)}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "28px", height: "28px", borderRadius: "8px", background: c.accentDim }}>
+                     <i className={item._icon} style={{ color: c.accent, fontSize: "0.95rem" }} />
+                  </div>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.6rem", fontWeight: 700, color: c.accent, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                    {item._cat}
+                  </span>
+                  <span style={{ color: c.border, fontSize: "0.6rem" }}>|</span>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.6rem", fontWeight: 700, color: c.textMuted }}>{item.time || item.published_date}</span>
+                </div>
+                <h4 className="intel-title" style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.1rem", fontWeight: 800, color: c.text, margin: 0, lineHeight: "1.45", transition: "color 0.2s" }}>
+                  {item.title}
+                </h4>
+              </div>
+            ))}
+            
+            <a href="#feed" style={{ padding: "1.25rem 1.75rem", textAlign: "center", textDecoration: "none", color: c.text, fontFamily: "'Manrope', sans-serif", fontSize: "0.75rem", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", background: c.accentDim, transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.opacity = "0.8"} onMouseLeave={e => e.currentTarget.style.opacity = "1"}>
+              Buka Semua Feed &rarr;
+            </a>
+          </div>
+        </div>
+
+        <div className="crypto-dock">
+          {statCards.map((s: any, index: number) => (
+            <div key={`stat-${index}`} className="dock-pill">
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", color: c.textMuted }}>
+                {s.label}
+              </span>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
+                <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.4rem", color: c.text, fontWeight: 800, letterSpacing: "-0.03em" }}>{s.val}</span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontFamily: "'Space Mono', monospace", fontSize: "0.65rem", fontWeight: 700, color: s.up ? c.up : c.down, background: s.up ? (theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)') : 'transparent', padding: "0.25rem 0.6rem", borderRadius: "100px" }}>
+                  <i className={s.up ? "ri-arrow-right-up-line" : "ri-arrow-right-down-line"} /> {s.ch}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
       </div>
     </section>
   );
 }
-// --- BATAS PERUBAHAN ---// --- BATAS PERUBAHAN ---
 
 export function Ticker({ theme, tickerData }: any) {
   const c = T[theme];
