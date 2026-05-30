@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   const path = req.query.path || ""; 
   
-  let title = "SOVR — Insight In Second";
+  let title = "SOVR - Insight In Second";
   let desc = "Pembaruan seputar ekosistem AI, Market, Web3, dan Teknologi Terkini dengan kurasi eksklusif.";
   let image = "https://via.placeholder.com/1200x630/383838/f7f7f7.png?text=SOVR.+Insight";
 
