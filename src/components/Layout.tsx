@@ -1,491 +1,758 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { T } from "../theme";
 
-export function Hero({ theme, tickerData, articles = [], perspectives = [] }: any) {
+export function Hero({ theme, articles = [], perspectives = [] }: any) {
   const c = T[theme];
   const [now, setNow] = useState(new Date());
+  const [activeCard, setActiveCard] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const dragStartX = useRef(0);
+  const dragScrollLeft = useRef(0);
 
-  useEffect(() => { 
-    const t = setInterval(() => setNow(new Date()), 1000); 
-    return () => clearInterval(t); 
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
   }, []);
 
-  const heroFeatures = perspectives && perspectives.length > 0 
-    ? perspectives.slice(0, 4).map((p: any) => ({ ...p, _type: 'perspective' })) 
+  const heroFeatures = perspectives && perspectives.length > 0
+    ? perspectives.slice(0, 6).map((p: any) => ({ ...p, _type: 'perspective' }))
     : [];
 
-  const dateStr = now.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).toUpperCase();
-  const btc = tickerData?.coins?.find((coin: any) => coin.symbol === "BTC") || { price: "...", change: "...", isUp: true };
-  const eth = tickerData?.coins?.find((coin: any) => coin.symbol === "ETH") || { price: "...", change: "...", isUp: true };
-  const fng = tickerData?.fng || { value: "...", classification: "MEMUAT" };
-  
-  const statCards = [
-    { label: "BTC/USD", val: `$${btc.price}`, ch: btc.change, up: btc.isUp },
-    { label: "ETH/USD", val: `$${eth.price}`, ch: eth.change, up: eth.isUp },
-    { label: "MARKET SENTIMEN", val: fng.value, ch: fng.classification.toUpperCase(), up: fng.classification.toLowerCase().includes("greed") }
-  ];
+  const dateStr = now.toLocaleDateString("id-ID", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric"
+  }).toUpperCase();
 
-  const slugify = (text: string) => text ? text.toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
-  
+  const slugify = (text: string) =>
+    text ? text.toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
+
   const featuredArts = articles ? articles.filter((a: any) => a.featured) : [];
-  const regularArts = articles ? articles.filter((a: any) => !a.featured) : [];
-  const availableArts = [...featuredArts, ...regularArts].slice(0, 3).map((a: any) => {
+  const regularArts  = articles ? articles.filter((a: any) => !a.featured) : [];
+  const availableArts = [...featuredArts, ...regularArts].slice(0, 4).map((a: any) => {
     let icon = "ri-flashlight-line";
-    if (a.cat === "ai") icon = "ri-sparkling-2-line";
+    if (a.cat === "ai")    icon = "ri-sparkling-2-line";
     if (a.cat === "kripto") icon = "ri-coin-line";
-    if (a.cat === "defi") icon = "ri-swap-line";
+    if (a.cat === "defi")  icon = "ri-swap-line";
     return { ...a, _type: 'article', _icon: icon, _cat: a.tag || a.category };
   });
 
   const handleCardClick = (item: any, e: React.MouseEvent) => {
     e.preventDefault();
     if (!item) return;
-    const path = item._type === 'perspective' ? `/perspectives/${slugify(item.title)}` : `/feed/${slugify(item.title)}`;
+    const path = item._type === 'perspective'
+      ? `/perspectives/${slugify(item.title)}`
+      : `/feed/${slugify(item.title)}`;
     window.history.pushState({}, '', path);
     window.dispatchEvent(new Event('popstate'));
-    
     window.scrollTo(0, 0);
-    setTimeout(() => {
-      window.scrollTo(0, 0);
-    }, 50);
+    setTimeout(() => window.scrollTo(0, 0), 50);
   };
 
-  return (
-    <section style={{ position: "relative", display: "flex", flexDirection: "column", background: c.bg, paddingTop: 56, overflow: "hidden", minHeight: "100vh" }}>
-      <style>{`
-        @keyframes cyberFadeIn {
-          0% { opacity: 0; transform: translateY(30px) scale(0.98); }
-          100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
+  const scrollToCard = (idx: number) => {
+    const track = trackRef.current;
+    if (!track) return;
+    const card = track.children[idx] as HTMLElement;
+    if (!card) return;
+    track.scrollTo({ left: card.offsetLeft, behavior: 'smooth' });
+    setActiveCard(idx);
+  };
 
-        @keyframes pulseGlow {
-          0%, 100% { opacity: 0.5; }
-          50% { opacity: 0.8; }
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const onScroll = () => {
+      const cards = Array.from(track.children) as HTMLElement[];
+      let closest = 0;
+      let minDist = Infinity;
+      cards.forEach((card, i) => {
+        const dist = Math.abs(card.offsetLeft - track.scrollLeft);
+        if (dist < minDist) { minDist = dist; closest = i; }
+      });
+      setActiveCard(closest);
+    };
+    track.addEventListener('scroll', onScroll, { passive: true });
+    return () => track.removeEventListener('scroll', onScroll);
+  }, [heroFeatures.length]);
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    const track = trackRef.current;
+    if (!track) return;
+    isDragging.current = true;
+    dragStartX.current = e.pageX - track.offsetLeft;
+    dragScrollLeft.current = track.scrollLeft;
+    track.style.cursor = 'grabbing';
+  };
+  
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current) return;
+    const track = trackRef.current;
+    if (!track) return;
+    e.preventDefault();
+    const x = e.pageX - track.offsetLeft;
+    track.scrollLeft = dragScrollLeft.current - (x - dragStartX.current);
+  };
+  
+  const onMouseUp = () => {
+    isDragging.current = false;
+    if (trackRef.current) trackRef.current.style.cursor = 'grab';
+  };
+
+  const isDark = theme === 'dark';
+  const totalCards = heroFeatures.length;
+  const activeFeature = heroFeatures[activeCard] || null;
+
+  return (
+    <section style={{
+      position: "relative",
+      display: "flex",
+      flexDirection: "column",
+      background: c.bg,
+      paddingTop: 56,
+      paddingBottom: 0,
+      overflow: "hidden"
+    }}>
+      <style>{`
+        @keyframes hFadeUp {
+          from { opacity: 0; transform: translateY(14px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
-        
-        .clamped-title {
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
+        @keyframes hBlink {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0; }
+        }
+        @keyframes pulseGlow {
+          0%, 100% { opacity: 0.5; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(1.02); }
         }
 
         .ai-neural-grid {
           position: absolute;
           inset: 0;
-          background-size: 60px 60px;
+          background-size: 50px 50px;
           background-image: 
             linear-gradient(to right, ${c.border} 1px, transparent 1px),
             linear-gradient(to bottom, ${c.border} 1px, transparent 1px);
-          opacity: ${theme === 'dark' ? 0.15 : 0.3};
-          mask-image: radial-gradient(circle at 50% 10%, black 0%, transparent 70%);
-          -webkit-mask-image: radial-gradient(circle at 50% 10%, black 0%, transparent 70%);
+          opacity: ${isDark ? 0.15 : 0.3};
+          mask-image: radial-gradient(circle at 50% 10%, black 0%, transparent 60%);
+          -webkit-mask-image: radial-gradient(circle at 50% 10%, black 0%, transparent 60%);
           pointer-events: none;
           z-index: 0;
         }
 
         .ambient-core-1 {
           position: absolute;
-          top: -10%; left: -10%;
-          width: 50vw; height: 50vw;
-          background: radial-gradient(circle, ${c.accent}20 0%, transparent 60%);
+          top: -10%; left: 50%;
+          transform: translateX(-50%);
+          width: 70vw; height: 70vw;
+          background: radial-gradient(circle, ${c.accent}15 0%, transparent 60%);
           filter: blur(80px);
           z-index: 0;
           pointer-events: none;
           animation: pulseGlow 8s ease-in-out infinite;
         }
 
-        .ambient-core-2 {
-          position: absolute;
-          bottom: 10%; right: -10%;
-          width: 40vw; height: 40vw;
-          background: radial-gradient(circle, ${theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'} 0%, transparent 60%);
-          filter: blur(60px);
-          z-index: 0;
-          pointer-events: none;
-        }
-        
-        .hero-dashboard {
-          display: flex;
-          flex-direction: column;
-          flex: 1;
-          padding: clamp(3rem, 7vh, 5rem) 1.5rem 4rem;
+        .h-root {
           max-width: 1280px;
           margin: 0 auto;
           width: 100%;
+          padding: 0 clamp(1rem, 4vw, 2.5rem) 1rem;
+          box-sizing: border-box;
+          position: relative;
           z-index: 2;
-          gap: clamp(2rem, 5vh, 3.5rem);
         }
 
-        .ai-header {
+        .h-masthead {
           display: flex;
           flex-direction: column;
-          gap: 1.25rem;
-          animation: cyberFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-        }
-
-        .status-badge {
-          display: inline-flex;
           align-items: center;
-          gap: 8px;
-          padding: 0.4rem 1rem;
-          border: 1px solid ${c.border};
-          border-radius: 100px;
-          background: ${theme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'};
-          backdrop-filter: blur(10px);
-          width: fit-content;
+          justify-content: center;
+          text-align: center;
+          padding: clamp(2rem, 6vh, 4.5rem) 0 1.5rem;
+          border-bottom: 1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'};
+          gap: 0.8rem;
+          animation: hFadeUp 0.55s ease both;
         }
 
-        .holographic-logo {
+        .h-logo {
           font-family: 'Manrope', sans-serif;
-          font-size: clamp(4rem, 14vw, 8.5rem);
+          font-size: clamp(4.5rem, 15vw, 9.5rem);
           font-weight: 900;
-          line-height: 0.9;
-          letter-spacing: -0.04em;
+          line-height: 0.85;
+          letter-spacing: -0.05em;
           margin: 0;
-          background: linear-gradient(135deg, ${c.text} 30%, ${c.accent} 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          filter: drop-shadow(0 4px 12px ${c.accent}30);
+          color: ${c.text};
         }
 
-        .ai-desc {
+        .h-logo-dot { color: ${c.accent}; }
+
+        .h-meta {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .h-tagline {
           font-family: 'Manrope', sans-serif;
-          font-size: clamp(1.05rem, 2vw, 1.2rem);
+          font-size: clamp(1rem, 2vw, 1.25rem);
+          font-weight: 800;
           color: ${c.textSub};
-          font-weight: 500;
-          line-height: 1.6;
           margin: 0;
-          max-width: 600px;
+          letter-spacing: -0.01em;
         }
 
-        .terminal-grid {
+        .h-cats {
+          font-family: 'Space Mono', monospace;
+          font-size: clamp(0.55rem, 1.2vw, 0.65rem);
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          color: ${c.textMuted};
+          text-transform: uppercase;
           display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-          animation: cyberFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+          align-items: center;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 8px;
         }
 
-        .carousel-viewport {
+        .h-cats-highlight {
+          color: ${c.accent};
+        }
+
+        .h-live-strip {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 0.75rem 0;
+          border-bottom: 1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'};
+          animation: hFadeUp 0.55s 0.06s ease both;
+        }
+
+        .h-live-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: ${c.accent};
+          animation: hBlink 1.4s infinite;
+          flex-shrink: 0;
+        }
+
+        .h-live-label {
+          font-family: 'Space Mono', monospace;
+          font-size: 0.6rem;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          color: ${c.accent};
+          text-transform: uppercase;
+        }
+
+        .h-body {
+          display: grid;
+          grid-template-columns: 1fr;
+          animation: hFadeUp 0.6s 0.1s ease both;
+        }
+
+        @media (min-width: 900px) {
+          .h-body {
+            grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+            align-items: start;
+          }
+        }
+
+        .h-carousel-col {
           display: flex;
           flex-direction: column;
+          padding: 1.5rem 0;
           min-width: 0;
         }
 
-        .carousel-track {
+        @media (min-width: 900px) {
+          .h-carousel-col {
+            padding: 2rem 2.5rem 2rem 0;
+            border-right: 1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'};
+          }
+        }
+
+        .h-carousel-header {
           display: flex;
-          gap: 1.5rem;
-          overflow-x: auto;
-          overflow-y: hidden;
-          scroll-snap-type: x mandatory;
-          scroll-behavior: smooth;
-          -webkit-overflow-scrolling: touch;
-          padding: 1rem 0.5rem 3rem 0.5rem;
-          margin: 0 -0.5rem;
-        }
-
-        .carousel-track::-webkit-scrollbar {
-          height: 6px;
-        }
-        .carousel-track::-webkit-scrollbar-track {
-          background: ${theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'};
-          border-radius: 100px;
-        }
-        .carousel-track::-webkit-scrollbar-thumb {
-          background: ${theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'};
-          border-radius: 100px;
-        }
-        .carousel-track::-webkit-scrollbar-thumb:hover {
-          background: ${c.accent};
-        }
-
-        .glass-card {
-          flex: 0 0 100%;
-          scroll-snap-align: start;
-          scroll-snap-stop: always;
-          background: ${theme === 'dark' ? 'rgba(20,20,20,0.4)' : 'rgba(255,255,255,0.6)'};
-          border: 1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'};
-          border-radius: 24px;
-          overflow: hidden;
-          cursor: pointer;
-          display: flex;
-          flex-direction: column;
-          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-          position: relative;
-        }
-
-        .glass-card:hover {
-          border-color: ${c.accent};
-          transform: translateY(-5px);
-          box-shadow: 0 20px 40px ${theme === 'dark' ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.08)'}, 
-                      0 0 0 1px ${c.accent}40 inset;
-        }
-
-        .vision-img-wrapper {
-          position: relative;
-          width: 100%;
-          aspect-ratio: 16/10;
-          overflow: hidden;
-          background: ${c.accentDim};
-          border-radius: 24px 24px 0 0;
-        }
-
-        .vision-img {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .glass-card:hover .vision-img {
-          transform: scale(1.05);
-        }
-
-        .card-hud-overlay {
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(to top, ${theme === 'dark' ? '#0a0a0a' : '#ffffff'} 0%, transparent 100%);
-          opacity: 0.8;
-          z-index: 10;
-          pointer-events: none;
-        }
-
-        .glass-content {
-          padding: 2rem;
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-          position: relative;
-          z-index: 12;
-          margin-top: -3rem; 
-        }
-
-        .intel-panel {
-          display: flex;
-          flex-direction: column;
-          border: 1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'};
-          border-radius: 24px;
-          background: ${theme === 'dark' ? 'rgba(20,20,20,0.4)' : 'rgba(255,255,255,0.6)'};
-          overflow: hidden;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-        }
-
-        .intel-header {
-          padding: 1.5rem 1.75rem;
-          border-bottom: 1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'};
-        }
-
-        .intel-item {
-          padding: 1.5rem 1.75rem;
-          border-bottom: 1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'};
-          cursor: pointer;
-          transition: all 0.3s;
-          display: flex;
-          flex-direction: column;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 1.1rem;
           gap: 0.75rem;
         }
 
-        .intel-item:last-child {
-          border-bottom: none;
+        .h-carousel-label {
+          font-family: 'Space Mono', monospace;
+          font-size: 0.62rem;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: ${c.textMuted};
         }
 
-        .intel-item:hover {
-          background: ${theme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'};
-          padding-left: 2.25rem;
+        .h-carousel-drag-hint {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-family: 'Space Mono', monospace;
+          font-size: 0.55rem;
+          font-weight: 700;
+          color: ${c.textMuted};
+          letter-spacing: 0.1em;
+          padding: 0.35rem 0.8rem;
+          border: 1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'};
+          border-radius: 100px;
+          background: ${isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'};
+          user-select: none;
         }
 
-        .intel-item:hover .intel-title {
+        .h-track {
+          display: flex;
+          align-items: stretch;
+          gap: 1.25rem;
+          overflow-x: scroll;
+          scroll-snap-type: x mandatory;
+          -webkit-overflow-scrolling: touch;
+          cursor: grab;
+          scroll-behavior: smooth;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+
+        .h-track::-webkit-scrollbar { display: none; }
+        .h-track:active { cursor: grabbing; }
+
+        .h-slide {
+          flex: 0 0 100%;
+          scroll-snap-align: start;
+          scroll-snap-stop: always;
+          display: flex;
+          flex-direction: column;
+          gap: 0.9rem;
+          cursor: pointer;
+          height: auto;
+        }
+
+        .h-slide-img-wrap {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 16 / 9;
+          overflow: hidden;
+          background: ${c.accentDim};
+          border-radius: 4px;
+          flex-shrink: 0;
+        }
+
+        .h-slide-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+          will-change: transform;
+        }
+
+        .h-slide:hover .h-slide-img { transform: scale(1.04); }
+
+        .h-slide-badge {
+          position: absolute;
+          top: 0.75rem;
+          left: 0.75rem;
+          font-family: 'Space Mono', monospace;
+          font-size: 0.55rem;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          color: #fff;
+          background: ${c.accent};
+          padding: 0.22rem 0.6rem;
+          z-index: 2;
+          pointer-events: none;
+        }
+
+        .h-slide-author {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .h-slide-tag {
+          font-family: 'Space Mono', monospace;
+          font-size: 0.55rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
           color: ${c.accent};
+          text-transform: uppercase;
         }
 
-        .btn-feed-link {
-          padding: 1.25rem 1.75rem;
-          text-align: center;
-          text-decoration: none;
-          color: ${c.text};
+        .h-slide-sep {
+          color: ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'};
+          font-size: 0.6rem;
+        }
+
+        .h-slide-name {
+          font-family: 'Space Mono', monospace;
+          font-size: 0.55rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          color: ${c.textMuted};
+          text-transform: uppercase;
+        }
+
+        .h-slide-title {
           font-family: 'Manrope', sans-serif;
-          font-size: 0.75rem;
+          font-size: clamp(1.4rem, 3.5vw, 2.1rem);
           font-weight: 800;
+          line-height: 1.12;
+          letter-spacing: -0.03em;
+          color: ${c.text};
+          margin: 0;
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          transition: color 0.2s;
+        }
+
+        .h-slide:hover .h-slide-title { color: ${c.accent}; }
+
+        .h-slide-deck {
+          font-family: 'Manrope', sans-serif;
+          font-size: clamp(0.88rem, 1.7vw, 1rem);
+          font-weight: 500;
+          line-height: 1.65;
+          color: ${c.textSub};
+          margin: 0;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .h-static-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-top: 1.25rem;
+          margin-top: 1.25rem;
+          border-top: 1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'};
+        }
+
+        .h-read-more {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          font-family: 'Space Mono', monospace;
+          font-size: 0.6rem;
+          font-weight: 700;
           letter-spacing: 0.1em;
           text-transform: uppercase;
-          background: ${theme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'};
-          border-top: 1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'};
-          transition: all 0.3s ease;
+          color: ${c.text};
+          text-decoration: none;
+          border-bottom: 2px solid ${c.accent};
+          padding-bottom: 2px;
+          transition: gap 0.2s, color 0.2s;
+          cursor: pointer;
         }
+        
+        .h-read-more:hover { gap: 9px; color: ${c.accent}; }
 
-        .btn-feed-link:hover {
-          background: ${theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'};
-          color: ${c.accent};
-          letter-spacing: 0.15em;
-        }
-
-        .crypto-dock {
+        .h-dots {
           display: flex;
-          flex-wrap: wrap;
-          gap: 1rem;
-          animation: cyberFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+          align-items: center;
+          gap: 5px;
+        }
+        
+        .h-dot {
+          height: 3px;
+          border-radius: 2px;
+          background: ${isDark ? 'rgba(255,255,255,0.13)' : 'rgba(0,0,0,0.12)'};
+          cursor: pointer;
+          transition: width 0.3s cubic-bezier(0.16,1,0.3,1), background 0.3s;
+          width: 18px;
+          border: none;
+          padding: 0;
+        }
+        
+        .h-dot.h-dot-active {
+          width: 32px;
+          background: ${c.accent};
         }
 
-        .dock-pill {
-          flex: 1;
-          min-width: 200px;
-          background: ${theme === 'dark' ? 'rgba(20,20,20,0.5)' : 'rgba(255,255,255,0.7)'};
-          border: 1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'};
-          border-radius: 20px;
-          padding: 1.25rem 1.75rem;
+        .h-sidebar {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+          border-top: 1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'};
+        }
+
+        @media (min-width: 900px) {
+          .h-sidebar {
+            border-top: none;
+            padding-left: 2.5rem;
+          }
+        }
+
+        .h-sidebar-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 2rem 0 0.9rem;
+          border-bottom: 2px solid ${c.text};
+        }
+
+        .h-sidebar-label {
+          font-family: 'Space Mono', monospace;
+          font-size: 0.65rem;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          color: ${c.text};
+          text-transform: uppercase;
+        }
+
+        .h-sidebar-link {
+          font-family: 'Space Mono', monospace;
+          font-size: 0.55rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          color: ${c.accent};
+          text-decoration: none;
+          text-transform: uppercase;
+          border-bottom: 1px solid ${c.accent};
+          padding-bottom: 1px;
+          transition: opacity 0.2s;
+        }
+        
+        .h-sidebar-link:hover { opacity: 0.65; }
+
+        .h-news-item {
+          display: grid;
+          grid-template-columns: 30px 1fr;
+          gap: 0 0.9rem;
+          padding: 1.1rem 0;
+          border-bottom: 1px solid ${isDark ? 'rgba(255,255,255,0.045)' : 'rgba(0,0,0,0.045)'};
+          cursor: pointer;
+          align-items: start;
+        }
+
+        .h-news-item:last-child { border-bottom: none; }
+        .h-news-item:hover .h-news-title { color: ${c.accent}; }
+
+        .h-news-num {
+          font-family: 'Manrope', sans-serif;
+          font-size: 1.7rem;
+          font-weight: 900;
+          line-height: 1;
+          color: ${isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.3)'};
+          letter-spacing: -0.05em;
+          user-select: none;
+          padding-top: 3px;
+        }
+
+        .h-news-inner {
           display: flex;
           flex-direction: column;
           gap: 0.4rem;
-          box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-          transition: transform 0.3s, border-color 0.3s;
         }
 
-        .dock-pill:hover {
-          transform: translateY(-3px);
-          border-color: ${c.accent};
+        .h-news-meta {
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+          flex-wrap: wrap;
         }
 
-        @media (min-width: 1024px) {
-          .terminal-grid {
-            display: grid;
-            grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
-            gap: 2rem;
-            align-items: stretch;
-          }
-          .glass-card {
-            height: 100%;
-          }
-          .vision-img-wrapper {
-            aspect-ratio: auto;
-            flex: 1;
-            min-height: 380px;
-          }
+        .h-news-cat {
+          font-family: 'Space Mono', monospace;
+          font-size: 0.5rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          padding: 0.17rem 0.45rem;
+          background: ${c.accentDim};
+          color: ${c.accent};
+          border-radius: 2px;
+        }
+
+        .h-news-time {
+          font-family: 'Space Mono', monospace;
+          font-size: 0.5rem;
+          font-weight: 700;
+          color: ${c.textMuted};
+          letter-spacing: 0.06em;
+        }
+
+        .h-news-title {
+          font-family: 'Manrope', sans-serif;
+          font-size: clamp(0.9rem, 1.8vw, 1rem);
+          font-weight: 800;
+          line-height: 1.4;
+          color: ${c.text};
+          margin: 0;
+          transition: color 0.2s;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .hero-end-line {
+          width: 48px;
+          height: 4px;
+          background: ${c.accent};
+          border-radius: 10px;
+          margin: 3.5rem auto 0.5rem auto;
+          box-shadow: 0 0 15px ${c.accent}80;
+          animation: hFadeUp 0.8s 0.2s ease both;
         }
       `}</style>
 
       <div className="ai-neural-grid" />
       <div className="ambient-core-1" />
-      <div className="ambient-core-2" />
 
-      <div className="hero-dashboard">
-        <div className="ai-header">
-          <div className="status-badge">
-            <span style={{ width: "6px", height: "6px", background: c.accent, borderRadius: "50%", animation: "pulseGlow 1.5s infinite" }} />
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.15em", color: c.textMuted }}>
-              {dateStr}
-            </span>
-          </div>
-          
-          <div>
-            <h1 className="holographic-logo">SOVR.</h1>
-            <h2 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "clamp(1.4rem, 4vw, 2.4rem)", fontWeight: 800, color: c.text, lineHeight: "1.1", letterSpacing: "-0.02em", margin: "0.5rem 0 1rem 0" }}>
-              Insight In <span style={{ color: c.accent }}>Second.</span>
-            </h2>
-            <p className="ai-desc">
-              Portal Media masa depan. Dapatkan analisis mendalam seputar AI, Web3, dan Kripto.
+      <div className="h-root">
+
+        <div className="h-masthead">
+          <h1 className="h-logo">
+            SOVR<span className="h-logo-dot">.</span>
+          </h1>
+          <div className="h-meta">
+            <p className="h-tagline">Insight In Second.</p>
+            <p className="h-cats">
+              {dateStr} <span style={{ margin: '0 4px', color: c.border }}>|</span> <span className="h-cats-highlight">AI · WEB3 · KRIPTO</span>
             </p>
           </div>
         </div>
 
-        <div className="terminal-grid">
-          
-          <div className="carousel-viewport">
-            
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", padding: "0 0.5rem" }}>
-              <h4 style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.75rem", fontWeight: 700, color: c.text, letterSpacing: "0.1em", margin: 0, textTransform: "uppercase" }}>
-                Perspectives.
-              </h4>
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.6rem", color: c.textMuted, letterSpacing: "0.1em", display: "flex", alignItems: "center", gap: "4px" }}>
-                GESER <i className="ri-arrow-right-line" />
-              </span>
-            </div>
+        <div className="h-live-strip">
+          <span className="h-live-dot" />
+          <span className="h-live-label">Live Update</span>
+        </div>
 
-            <div className="carousel-track">
-              {heroFeatures.length > 0 ? (
-                heroFeatures.map((feat: any, idx: number) => (
-                  <div key={`feat-${idx}`} className="glass-card" onClick={(e) => handleCardClick(feat, e)}>
-                    <div className="vision-img-wrapper">
-                      <img 
-                        src={feat.image_url || `https://via.placeholder.com/800x450?text=SOVR+Deep+Dive`} 
-                        alt={feat.title} 
-                        className="vision-img"
-                      />
-                      <div className="card-hud-overlay" />
-                    </div>
-                    
-                    <div className="glass-content">
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.15em", color: c.bg, background: c.text, padding: "0.3rem 0.8rem", borderRadius: "100px" }}>
-                          REPORT
-                        </span>
-                        <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.75rem", fontWeight: 800, color: c.text, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                          {feat.author}
-                        </span>
-                      </div>
-                      
-                      <h3 className="clamped-title" style={{ fontFamily: "'Manrope', sans-serif", fontSize: "clamp(1.5rem, 4vw, 2.4rem)", fontWeight: 800, color: c.text, lineHeight: "1.25", letterSpacing: "-0.02em", margin: 0 }}>
-                        {feat.title}
-                      </h3>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="glass-card" style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "4rem", color: c.textMuted, fontFamily: "'Manrope', sans-serif", fontWeight: 600 }}>
-                  Sinkronisasi Database...
+        <div className="h-body">
+
+          <div className="h-carousel-col">
+            <div className="h-carousel-header">
+              <span className="h-carousel-label">Perspectives</span>
+              {totalCards > 1 && (
+                <div className="h-carousel-drag-hint">
+                  <i className="ri-arrow-left-right-line" /> GESER
                 </div>
               )}
             </div>
-          </div>
 
-          <div className="intel-panel">
-            <div className="intel-header">
-              <h4 style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.75rem", fontWeight: 700, color: c.text, letterSpacing: "0.1em", margin: 0, textTransform: "uppercase" }}>
-                News Feed
-              </h4>
-            </div>
-            
-            {availableArts.map((item: any, i: number) => (
-              <div key={i} className="intel-item" onClick={(e) => handleCardClick(item, e)}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "28px", height: "28px", borderRadius: "8px", background: c.accentDim }}>
-                     <i className={item._icon} style={{ color: c.accent, fontSize: "0.95rem" }} />
-                  </div>
-                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.6rem", fontWeight: 700, color: c.accent, letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                    {item._cat}
-                  </span>
-                  <span style={{ color: c.border, fontSize: "0.6rem" }}>|</span>
-                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.6rem", fontWeight: 700, color: c.textMuted }}>{item.time || item.published_date}</span>
+            {heroFeatures.length > 0 ? (
+              <>
+                <div
+                  className="h-track"
+                  ref={trackRef}
+                  onMouseDown={onMouseDown}
+                  onMouseMove={onMouseMove}
+                  onMouseUp={onMouseUp}
+                  onMouseLeave={onMouseUp}
+                >
+                  {heroFeatures.map((feat: any, idx: number) => (
+                    <div
+                      key={`slide-${idx}`}
+                      className="h-slide"
+                      onClick={(e) => handleCardClick(feat, e)}
+                    >
+                      <div className="h-slide-img-wrap">
+                        <img
+                          src={feat.image_url || `https://via.placeholder.com/900x506?text=SOVR`}
+                          alt={feat.title}
+                          className="h-slide-img"
+                          draggable={false}
+                        />
+                        <span className="h-slide-badge">DEEP DIVE</span>
+                      </div>
+
+                      <div className="h-slide-author">
+                        <span className="h-slide-tag">Perspectives</span>
+                        <span className="h-slide-sep">·</span>
+                        <span className="h-slide-name">{feat.author}</span>
+                      </div>
+
+                      <h2 className="h-slide-title">{feat.title}</h2>
+
+                      {feat.excerpt && (
+                        <p className="h-slide-deck">{feat.excerpt}</p>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <h4 className="intel-title" style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.1rem", fontWeight: 800, color: c.text, margin: 0, lineHeight: "1.45", transition: "color 0.2s" }}>
-                  {item.title}
-                </h4>
-              </div>
-            ))}
-            
-            <a href="#feed" className="btn-feed-link">
-              Buka Semua Feed &rarr;
-            </a>
-          </div>
-        </div>
 
-        <div className="crypto-dock">
-          {statCards.map((s: any, index: number) => (
-            <div key={`stat-${index}`} className="dock-pill">
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", color: c.textMuted }}>
-                {s.label}
-              </span>
-              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
-                <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.4rem", color: c.text, fontWeight: 800, letterSpacing: "-0.03em" }}>{s.val}</span>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontFamily: "'Space Mono', monospace", fontSize: "0.65rem", fontWeight: 700, color: s.up ? c.up : c.down, background: s.up ? (theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)') : 'transparent', padding: "0.25rem 0.6rem", borderRadius: "100px" }}>
-                  <i className={s.up ? "ri-arrow-right-up-line" : "ri-arrow-right-down-line"} /> {s.ch}
-                </span>
+                <div className="h-static-footer">
+                  <span 
+                    className="h-read-more" 
+                    onClick={(e) => activeFeature && handleCardClick(activeFeature, e)}
+                  >
+                    Baca Selengkapnya <i className="ri-arrow-right-line" />
+                  </span>
+
+                  {totalCards > 1 && (
+                    <div className="h-dots">
+                      {heroFeatures.map((_: any, i: number) => (
+                        <button
+                          key={i}
+                          className={`h-dot ${i === activeCard ? 'h-dot-active' : ''}`}
+                          onClick={(e) => { e.stopPropagation(); scrollToCard(i); }}
+                          aria-label={`Slide ${i + 1}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: 360,
+                color: c.textMuted,
+                fontFamily: "'Manrope', sans-serif",
+                fontWeight: 600,
+                fontSize: "0.9rem"
+              }}>
+                Sinkronisasi Database...
               </div>
+            )}
+          </div>
+
+          <div className="h-sidebar">
+            <div className="h-sidebar-head">
+              <span className="h-sidebar-label">News Feed</span>
+              <a href="#feed" className="h-sidebar-link">Lihat Semua →</a>
             </div>
-          ))}
+
+            {availableArts.length > 0 ? availableArts.map((item: any, i: number) => (
+              <div key={i} className="h-news-item" onClick={(e) => handleCardClick(item, e)}>
+                <div className="h-news-num">{String(i + 1).padStart(2, '0')}</div>
+                <div className="h-news-inner">
+                  <div className="h-news-meta">
+                    <span className="h-news-cat">{item._cat}</span>
+                    <span className="h-news-time">{item.time || item.published_date}</span>
+                  </div>
+                  <h3 className="h-news-title">{item.title}</h3>
+                </div>
+              </div>
+            )) : (
+              <div style={{
+                padding: "2rem 0",
+                color: c.textMuted,
+                fontFamily: "'Manrope', sans-serif",
+                fontSize: "0.9rem",
+                fontWeight: 600
+              }}>
+                Memuat berita terkini...
+              </div>
+            )}
+          </div>
+
         </div>
+        
+        <div className="hero-end-line" />
 
       </div>
     </section>
