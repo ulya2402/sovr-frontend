@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://namadomainanda.com/sitemap.xml
+Sitemap: https://readsovr.com/sitemap.xml
