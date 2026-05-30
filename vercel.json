@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "https://backend-sovr.botgampang123.workers.dev/sitemap.xml"
+    },
+    {
       "source": "/(feed/.*|perspectives/.*|vault.*)",
       "has": [
         {
