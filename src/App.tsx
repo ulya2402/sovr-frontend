@@ -8,6 +8,7 @@ import { LegalPage } from "./components/Legal";
 import { PromptOfTheDay } from "./components/PromptOfTheDay";
 import { AuthorProfile } from "./components/Author";
 import { Search } from "./components/Search";
+import { InlineAdBanner } from "./components/Ads"; // <-- TAMBAHKAN BARIS INI
 
 
 // 🔥 TAMBAHAN: Fungsi Slugify untuk mengubah spasi jadi strip di URL
@@ -1009,6 +1010,14 @@ export default function App() {
                     </div>
                   </>
                 )}
+
+                {/* Komponen Iklan */}
+                <InlineAdBanner theme={theme} />
+
+                {/* Garis Pendek Pembatas di bawah Iklan */}
+                <div style={{ display: "flex", justifyContent: "center", margin: "0.3rem 0" }}>
+                  <div style={{ width: "40px", height: "4px", background: c.border, borderRadius: "2px" }} />
+                </div>
 
                 {signals.length > 0 && (
                   <InlineSignals signals={signals} theme={theme} />
