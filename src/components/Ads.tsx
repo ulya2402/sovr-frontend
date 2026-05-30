@@ -5,7 +5,7 @@ export function InlineAdBanner({ theme }: { theme: string }) {
   const c = T[theme as keyof typeof T];
   
   const adLink = "https://monetag.com/?ref_id=zZ8f";
-  const adImage = "https://monetag.com/wp-content/uploads/2025/07/monetag-case-study-traffic-asia-1000-per-month.png";
+  const adImage = "https://monetag.com/wp-content/uploads/2025/06/monetag-twitter-case-main.png";
 
 return (
     <div className="sovr-ad-container">
