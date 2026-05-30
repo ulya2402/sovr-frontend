@@ -7,6 +7,7 @@ import { Navbar, Ticker, Hero, Footer } from "./components/Layout";
 import { LegalPage } from "./components/Legal"; 
 import { PromptOfTheDay } from "./components/PromptOfTheDay";
 import { AuthorProfile } from "./components/Author";
+import { Search } from "./components/Search";
 
 
 // 🔥 TAMBAHAN: Fungsi Slugify untuk mengubah spasi jadi strip di URL
@@ -1042,6 +1043,14 @@ export default function App() {
           )}
         </div>
       </section>
+
+      {/* 🔥 TAMBAHAN: Komponen Search diletakkan di root App agar floating button-nya global */}
+      <Search 
+        articles={articles} 
+        vaultTools={vaultTools} 
+        perspectives={perspectives} 
+        theme={theme} 
+      />
 
       <Footer theme={theme} />
     </div>
