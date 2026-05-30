@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { T } from "../theme";
 
+// --- AWAL PERUBAHAN ---
 export function Hero({ theme, articles = [], perspectives = [] }: any) {
   const c = T[theme];
   const [now, setNow] = useState(new Date());
@@ -28,7 +29,7 @@ export function Hero({ theme, articles = [], perspectives = [] }: any) {
 
   const featuredArts = articles ? articles.filter((a: any) => a.featured) : [];
   const regularArts  = articles ? articles.filter((a: any) => !a.featured) : [];
-  const availableArts = [...featuredArts, ...regularArts].slice(0, 4).map((a: any) => {
+  const availableArts = [...featuredArts, ...regularArts].slice(0, 5).map((a: any) => {
     let icon = "ri-flashlight-line";
     if (a.cat === "ai")    icon = "ri-sparkling-2-line";
     if (a.cat === "kripto") icon = "ri-coin-line";
@@ -722,7 +723,7 @@ export function Hero({ theme, articles = [], perspectives = [] }: any) {
 
           <div className="h-sidebar">
             <div className="h-sidebar-head">
-              <span className="h-sidebar-label">News Feed</span>
+              <span className="h-sidebar-label">Kilas Cepat</span>
               <a href="#feed" className="h-sidebar-link">Lihat Semua →</a>
             </div>
 
@@ -758,6 +759,7 @@ export function Hero({ theme, articles = [], perspectives = [] }: any) {
     </section>
   );
 }
+// --- BATAS PERUBAHAN ---
 
 export function Ticker({ theme, tickerData }: any) {
   const c = T[theme];

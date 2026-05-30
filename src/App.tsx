@@ -40,13 +40,7 @@ function formatTime(createdAt: string, publishedDate: string) {
   } catch (error) { return publishedDate; }
 }
 
-// --- AWAL PERUBAHAN: src/App.tsx (Komponen Sisipan Anti-Mainstream) ---
-// --- AWAL PERUBAHAN: Komponen InlinePerspectives Kompak ---
-// --- AWAL PERUBAHAN: Komponen InlinePerspectives ala Every.to ---
-// --- AWAL PERUBAHAN: Komponen InlinePerspectives dengan Eyebrow Text ---
-// --- AWAL PERUBAHAN: Komponen InlinePerspectives ---
-// --- AWAL PERUBAHAN: src/App.tsx (Komponen InlinePerspectives) ---
-// --- AWAL PERUBAHAN: src/App.tsx (Komponen InlinePerspectives) ---
+
 function InlinePerspectives({ perspectives, theme }: any) {
   const c = T[theme];
   const latest = perspectives.slice(0, 3);
@@ -171,6 +165,142 @@ function InlinePerspectives({ perspectives, theme }: any) {
             Jelajahi Semua Deep Dives <i className="ri-arrow-right-line" style={{ fontSize: "0.9rem" }} />
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// --- AWAL PERUBAHAN ---
+function InlineSignals({ signals, theme }: any) {
+  const c = T[theme];
+  if (!signals || signals.length === 0) return null;
+
+  return (
+    <div style={{ margin: "2rem 0", padding: 0 }}>
+      <style>{`
+        .signals-header {
+          margin-bottom: 1.5rem;
+        }
+        .signals-grid {
+          display: flex;
+          flex-direction: column;
+        }
+        
+        .signal-card {
+          display: flex;
+          flex-direction: column;
+          padding: 1.5rem 0;
+          border-bottom: 1px solid ${c.border};
+          cursor: pointer;
+          transition: opacity 0.2s;
+          text-decoration: none;
+        }
+        .signal-card:first-child { padding-top: 0; }
+        .signal-card:last-child { border-bottom: none; padding-bottom: 0; }
+        .signal-card:hover { opacity: 0.8; }
+
+        .signal-yt-img {
+          width: 100%;
+          height: auto;
+          aspect-ratio: 16/9;
+          object-fit: cover;
+          border-radius: 8px;
+          margin-bottom: 1rem;
+        }
+
+        .signal-play-btn {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 48px;
+          height: 48px;
+          background: rgba(0, 0, 0, 0.5);
+          backdrop-filter: blur(8px);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+        }
+
+        @media (min-width: 768px) {
+          .signals-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+          }
+          .signal-card {
+            padding: 1.5rem !important;
+            background: ${theme === 'dark' ? 'rgba(255,255,255,0.015)' : '#ffffff'};
+            border: 1px solid ${c.border} !important;
+            border-radius: 16px;
+            height: 100%;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          }
+          .signal-card:hover {
+            transform: translateY(-4px);
+            border-color: ${c.accent};
+            opacity: 1;
+          }
+          .signal-yt-img {
+            margin-bottom: 1.2rem;
+            border-radius: 10px;
+          }
+        }
+      `}</style>
+
+      <div className="signals-header">
+        <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.6rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: c.accent }}>Sorotan</span>
+        <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.4rem", fontWeight: 800, color: c.text, margin: "0.2rem 0 0 0", letterSpacing: "-0.02em" }}>
+          Jangan Lewatkan<span style={{ color: c.accent }}>.</span>
+        </h3>
+      </div>
+
+      <div className="signals-grid">
+        {signals.map((sig: any) => {
+          const isYouTube = sig.platform.toLowerCase() === 'youtube';
+          
+          return (
+            <a 
+              key={sig.id} 
+              href={sig.url} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="signal-card"
+            >
+              {isYouTube ? (
+                <>
+                  <div style={{ position: "relative", width: "100%" }}>
+                    <img src={sig.image_url || `https://via.placeholder.com/600x338?text=YouTube`} alt={sig.content} className="signal-yt-img" loading="lazy" />
+                    <div className="signal-play-btn"><i className="ri-play-fill" style={{ fontSize: "1.5rem" }} /></div>
+                  </div>
+                  <h4 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.1rem", fontWeight: 800, color: c.text, margin: "0 0 0.5rem 0", lineHeight: 1.4 }}>{sig.content}</h4>
+                  <span style={{ fontSize: "0.7rem", color: c.textSub, fontWeight: 600 }}>YouTube • {sig.author}</span>
+                </>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", marginBottom: "1rem" }}>
+                      <h4 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.1rem", fontWeight: 700, color: c.text, margin: 0, lineHeight: 1.5, letterSpacing: "-0.01em" }}>
+                        "{sig.content}"
+                      </h4>
+                      <i className="ri-twitter-x-line" style={{ color: c.textMuted, fontSize: "1.1rem", flexShrink: 0, marginTop: "2px" }} />
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: "auto" }}>
+                    <img src={sig.image_url || `https://via.placeholder.com/40?text=X`} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} alt={sig.author} loading="lazy" />
+                    <span style={{ fontSize: "0.75rem", color: c.textSub, fontWeight: 700 }}>{sig.author}</span>
+                  </div>
+                </div>
+              )}
+            </a>
+          );
+        })}
+      </div>
+      
+      <div style={{ display: "flex", justifyContent: "center", margin: "2.5rem 0 0.5rem" }}>
+        <div style={{ width: "40px", height: "4px", background: c.border, borderRadius: "2px" }} />
       </div>
     </div>
   );
@@ -331,10 +461,10 @@ function InlineVaultPromo({ tools, theme }: any) {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.4rem" }}>
             <i className="ri-box-3-fill" style={{ color: c.accent, fontSize: "0.9rem" }}></i>
-            <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: c.accent }}>The Vault</span>
+            <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: c.accent }}>Rekomendasi</span>
           </div>
           <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.35rem", fontWeight: 800, color: c.text, margin: 0, letterSpacing: "-0.02em" }}>
-            Curated Tools<span style={{ color: c.accent }}>.</span>
+            Kumpulan Tools AI<span style={{ color: c.accent }}>.</span>
           </h3>
         </div>
         <span style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: c.textMuted }}>Featured</span>
@@ -500,6 +630,7 @@ export default function App() {
   const [vaultTools, setVaultTools] = useState<any[]>([]); 
   const [tickerData, setTickerData] = useState<any>(null); 
   const [prompts, setPrompts] = useState<any[]>([]);
+  const [signals, setSignals] = useState<any[]>([]); // Tambahkan ini
   const [authors, setAuthors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -529,6 +660,8 @@ export default function App() {
       .then(res => res.json()).then(data => setVaultTools(data)).catch(() => {});
     fetch("https://backend-sovr.botgampang123.workers.dev/api/prompts")
       .then(res => res.json()).then(data => setPrompts(Array.isArray(data) ? data : [])).catch(() => {});
+    fetch("https://backend-sovr.botgampang123.workers.dev/api/signals")
+      .then(res => res.json()).then(data => setSignals(Array.isArray(data) ? data : [])).catch(() => {});
     fetch("https://backend-sovr.botgampang123.workers.dev/api/authors")
       .then(res => res.json()).then(data => setAuthors(Array.isArray(data) ? data : [])).catch(() => {});
   }, []);
@@ -875,9 +1008,11 @@ export default function App() {
                     </div>
                   </>
                 )}
-              </div>
 
-              
+                {signals.length > 0 && (
+                  <InlineSignals signals={signals} theme={theme} />
+                )}
+              </div>
 
               <div className="feed-sidebar">
                 {articles.some((a: any) => a.featured) && (

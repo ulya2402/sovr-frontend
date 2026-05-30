@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/(feed/.*|perspectives/.*)",
+      "source": "/(feed/.*|perspectives/.*|vault.*)",
       "has": [
         {
           "type": "header",
