@@ -135,12 +135,23 @@ export function Search({ articles = [], vaultTools = [], perspectives = [], them
     return matches.slice(0, 15);
   }, [debouncedQuery, filter, articles, vaultTools, perspectives]);
 
+ // --- AWAL PERUBAHAN: Fungsi handleNavigate di Search.tsx ---
   const handleNavigate = (url: string) => {
     setIsOpen(false);
+    
+    if (url.startsWith('/vault') || url.startsWith('/perspectives')) {
+      // 🔥 Gunakan router instan Astro untuk hasil Vault/Perspectives
+      import("astro:transitions/client").then(({ navigate }) => {
+        navigate(url);
+      });
+      return;
+    }
+    
     window.history.pushState({}, '', url);
     window.dispatchEvent(new Event('popstate'));
     setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 50);
   };
+// --- BATAS PERUBAHAN ---
 
   return (
     <>

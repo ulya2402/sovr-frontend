@@ -43,11 +43,11 @@ function formatTime(createdAt: string, publishedDate: string) {
 }
 
 
+// --- AWAL PERUBAHAN: Fungsi InlinePerspectives ---
 function InlinePerspectives({ perspectives, theme }: any) {
   const c = T[theme];
   const latest = perspectives.slice(0, 3);
   if (latest.length === 0) return null;
-
   const hero = latest[0];
   const others = latest.slice(1);
 
@@ -62,15 +62,10 @@ function InlinePerspectives({ perspectives, theme }: any) {
         </h3>
         <span style={{ fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: c.textMuted }}>Perspectives</span>
       </div>
-
       <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-        <div 
-          onClick={() => {
-            window.history.pushState({}, '', `/perspectives/${slugify(hero.title)}`);
-            window.dispatchEvent(new Event('popstate'));
-            setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 50);
-          }}
-          style={{ cursor: "pointer", display: "flex", flexDirection: "column", gap: "0.75rem" }}
+        <a
+          href={`/perspectives/${slugify(hero.title)}`}
+          style={{ textDecoration: "none", cursor: "pointer", display: "flex", flexDirection: "column", gap: "0.75rem" }}
           onMouseEnter={e => {
             const img = e.currentTarget.querySelector('.hero-img') as HTMLElement;
             if (img) img.style.transform = "scale(1.02)";
@@ -83,11 +78,11 @@ function InlinePerspectives({ perspectives, theme }: any) {
           }}
         >
           <div style={{ width: "100%", height: 200, borderRadius: 12, overflow: "hidden", background: c.accentDim }}>
-            <img 
+            <img
               className="hero-img"
-              src={hero.image_url || `https://via.placeholder.com/600x300?text=SOVR+Perspectives`} 
-              alt={hero.title} 
-              style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }} 
+              src={hero.image_url || `https://via.placeholder.com/600x300?text=SOVR+Perspectives`}
+              alt={hero.title}
+              style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }}
             />
           </div>
           <div>
@@ -100,57 +95,45 @@ function InlinePerspectives({ perspectives, theme }: any) {
               {hero.title}
             </h4>
           </div>
-        </div>
-
+        </a>
         {others.length > 0 && <div style={{ height: 1, background: c.border, opacity: 0.6 }} />}
-
         {others.length > 0 && (
           <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
             {others.map((p: any) => (
-              <div 
-                key={p.id} 
-                onClick={() => {
-                  window.history.pushState({}, '', `/perspectives/${slugify(p.title)}`);
-                  window.dispatchEvent(new Event('popstate'));
-                  setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 50);
-                }}
-                style={{ display: "flex", alignItems: "center", gap: "1rem", cursor: "pointer", transition: "opacity 0.2s" }}
+              <a
+                key={p.id}
+                href={`/perspectives/${slugify(p.title)}`}
+                style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "1rem", cursor: "pointer", transition: "opacity 0.2s" }}
                 onMouseEnter={e => { e.currentTarget.style.opacity = "0.7"; }}
                 onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ fontSize: "0.6rem", fontWeight: 800, color: c.accent, textTransform: "uppercase", letterSpacing: "0.05em" }}>{p.category}</span>
-                  <h4 style={{ 
-                    fontFamily: "'Manrope', sans-serif", fontSize: "1.05rem", fontWeight: 800, color: c.text, 
+                  <h4 style={{
+                    fontFamily: "'Manrope', sans-serif", fontSize: "1.05rem", fontWeight: 800, color: c.text,
                     margin: "0.2rem 0 0.4rem 0", lineHeight: 1.3, letterSpacing: "-0.01em",
-                    display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" 
+                    display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden"
                   }}>
                     {p.title}
                   </h4>
                   <span style={{ fontSize: "0.7rem", color: c.textSub, fontWeight: 600 }}>{p.author}</span>
                 </div>
-                
                 <div style={{ width: 100, height: 75, borderRadius: 10, overflow: "hidden", background: c.accentDim, flexShrink: 0 }}>
-                  <img 
-                    src={p.image_url || `https://via.placeholder.com/150x100?text=SOVR`} 
-                    alt={p.title} 
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                  <img
+                    src={p.image_url || `https://via.placeholder.com/150x100?text=SOVR`}
+                    alt={p.title}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   />
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         )}
-
         <div style={{ marginTop: "1.5rem", display: "flex", justifyContent: "center" }}>
-          <button
-            onClick={() => {
-              window.history.pushState({}, '', `/perspectives`);
-              window.dispatchEvent(new Event('popstate'));
-              setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 50);
-            }}
+          <a
+            href="/perspectives"
             style={{
-              display: "flex", alignItems: "center", gap: 8, fontFamily: "'Manrope', sans-serif",
+              textDecoration: "none", display: "flex", alignItems: "center", gap: 8, fontFamily: "'Manrope', sans-serif",
               fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
               color: c.bg,
               background: c.text,
@@ -165,7 +148,7 @@ function InlinePerspectives({ perspectives, theme }: any) {
             }}
           >
             Jelajahi Semua Deep Dives <i className="ri-arrow-right-line" style={{ fontSize: "0.9rem" }} />
-          </button>
+          </a>
         </div>
       </div>
     </div>
@@ -392,13 +375,10 @@ function InlineNewsletter({ theme }: any) {
 // --- AWAL PERUBAHAN: Komponen InlineEditorPicks Baru ---
 // --- AWAL PERUBAHAN: Kembalikan EditorSection dan letakkan InlineEditorPicks ---
 
-// 1. Komponen Inline Pilihan Editor (yang muncul disela-sela Feed)
-// --- AWAL PERUBAHAN: Desain Baru Komponen InlineEditorPicks ---
 function InlineEditorPicks({ articles, theme }: any) {
   const c = T[theme];
   const picks = articles.slice(0, 3);
   if (picks.length === 0) return null;
-
   return (
     <div style={{ margin: "1rem 0", padding: 0 }}>
       <div style={{ marginBottom: "0.75rem" }}>
@@ -407,28 +387,30 @@ function InlineEditorPicks({ articles, theme }: any) {
           Editor's Spotlight.
         </h3>
       </div>
-      
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
         {picks.map((p: any, index: number) => (
-          <div 
-            key={p.id} 
-            onClick={() => {
-              window.history.pushState({}, '', `/feed/${slugify(p.title)}`);
-              window.dispatchEvent(new Event('popstate'));
+          <a
+            key={p.id}
+            href={`/editor-picks/${slugify(p.title)}`}
+            onClick={(e) => {
+              e.preventDefault();
+              window.history.pushState({}, '', `/editor-picks/${slugify(p.title)}`);
+              window.dispatchEvent(new CustomEvent('sovr-nav'));
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            style={{ 
-              background: theme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)', 
-              border: `1px solid ${c.border}`, borderRadius: 16, padding: "1.25rem", 
+            style={{
+              textDecoration: "none", color: "inherit", display: "block",
+              background: theme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
+              border: `1px solid ${c.border}`, borderRadius: 16, padding: "1.25rem",
               cursor: "pointer", position: "relative", overflow: "hidden",
-              transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)" 
+              transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)"
             }}
-            onMouseEnter={e => { 
-              e.currentTarget.style.borderColor = c.accent; 
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = c.accent;
               e.currentTarget.style.transform = "translateY(-4px)";
             }}
-            onMouseLeave={e => { 
-              e.currentTarget.style.borderColor = c.border; 
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = c.border;
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >
@@ -443,20 +425,17 @@ function InlineEditorPicks({ articles, theme }: any) {
               {p.title}
             </h4>
             <span style={{ fontSize: "0.7rem", color: c.textSub, fontWeight: 600, display: "block", position: "relative", zIndex: 1 }}>{p.source.name}</span>
-          </div>
+          </a>
         ))}
       </div>
     </div>
   );
 }
 
-// 3. Pembaruan InlineVaultPromo
-// --- AWAL PERUBAHAN: Desain Vault Promo Aesthetic & Premium ---
 function InlineVaultPromo({ tools, theme }: any) {
   const c = T[theme];
   const featured = tools.slice(0, 4);
   if (featured.length === 0) return null;
-
   return (
     <div style={{ margin: "1rem 0", padding: 0 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "0.75rem" }}>
@@ -471,30 +450,19 @@ function InlineVaultPromo({ tools, theme }: any) {
         </div>
         <span style={{ fontSize: "0.6rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: c.textMuted }}>Featured</span>
       </div>
-
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1rem" }}>
         {featured.map((tool: any) => {
           const isFree = tool.pricing?.toLowerCase().includes('free');
-          
           return (
-            <div 
-              key={tool.id} 
-              onClick={() => {
-                window.history.pushState({}, '', `/vault/${slugify(tool.name)}`);
-                window.dispatchEvent(new Event('popstate'));
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
+            <a
+              key={tool.id}
+              href={`/vault/${slugify(tool.name)}`}
               style={{
-                position: "relative",
-                display: "flex",
-                alignItems: "center",
-                padding: "1.25rem",
+                textDecoration: "none", color: "inherit",
+                position: "relative", display: "flex", alignItems: "center", padding: "1.25rem",
                 background: theme === 'dark' ? 'rgba(255,255,255,0.015)' : '#ffffff',
-                border: `1px solid ${c.border}`,
-                borderRadius: 16,
-                cursor: "pointer",
-                transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-                overflow: "hidden"
+                border: `1px solid ${c.border}`, borderRadius: 16, cursor: "pointer",
+                transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)", overflow: "hidden"
               }}
               onMouseEnter={e => {
                 e.currentTarget.style.borderColor = c.accent;
@@ -520,13 +488,12 @@ function InlineVaultPromo({ tools, theme }: any) {
               }}
             >
               <div style={{ width: 48, height: 48, borderRadius: 12, border: `1px solid ${c.border}`, overflow: "hidden", flexShrink: 0, marginRight: "1rem", background: c.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <img 
-                  src={tool.logo} alt={tool.name} 
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }} 
-                  onError={(e: any) => { e.target.src = "https://via.placeholder.com/48?text=AI"; }} 
+                <img
+                  src={tool.logo} alt={tool.name}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  onError={(e: any) => { e.target.src = "https://via.placeholder.com/48?text=AI"; }}
                 />
               </div>
-
               <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "0.25rem" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                   <h4 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.05rem", fontWeight: 800, color: c.text, margin: 0, letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -540,14 +507,13 @@ function InlineVaultPromo({ tools, theme }: any) {
                   {tool.category}
                 </p>
               </div>
-
-              <div 
+              <div
                 className="vault-arrow"
                 style={{ flexShrink: 0, width: 32, height: 32, borderRadius: "50%", background: c.accentDim, display: "flex", alignItems: "center", justifyContent: "center", color: c.accent, transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }}
               >
                 <i className="ri-arrow-right-up-line" style={{ fontSize: "1rem" }} />
               </div>
-            </div>
+            </a>
           );
         })}
       </div>
@@ -615,6 +581,84 @@ function EditorSection({ theme, articles }: any) {
   );
 }
 
+// --- AWAL PERUBAHAN: src/App.tsx (Sistem Cache Global) ---
+
+// 🔥 1. SISTEM CACHE MEMORI GLOBAL (Diletakkan di luar fungsi App)
+// Ini mencegah App.tsx me-reload data dari nol saat Anda kembali dari halaman Vault/Perspectives
+const GLOBAL_CACHE = {
+  ticker: null as any,
+  vaultTools: null as any,
+  prompts: null as any,
+  signals: null as any,
+  authors: null as any,
+  articles: null as any,
+  perspectives: {} as any
+};
+
+function NotFoundUI({ theme }: { theme: string }) {
+  const c = T[theme];
+  return (
+    <div style={{
+      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+      minHeight: "75vh", textAlign: "center", padding: "2rem",
+      animation: "fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards"
+    }}>
+      <div style={{
+        fontSize: "clamp(6rem, 15vw, 12rem)", fontWeight: 900, color: c.accent, lineHeight: 1,
+        fontFamily: "'Manrope', sans-serif", letterSpacing: "-0.05em",
+        textShadow: theme === 'dark' ? `0 0 100px ${c.accent}50` : `0 15px 50px ${c.accent}30`,
+        marginBottom: "0.5rem"
+      }}>
+        404
+      </div>
+      <div style={{
+        fontSize: "0.8rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.2em",
+        color: c.textMuted, marginBottom: "1.5rem"
+      }}>
+        System Error
+      </div>
+      <h1 style={{
+        fontSize: "clamp(1.5rem, 4vw, 2.5rem)", fontWeight: 800, color: c.text,
+        fontFamily: "'Manrope', sans-serif", letterSpacing: "-0.02em", margin: "0 0 1rem 0"
+      }}>
+        Halaman Tidak Ditemukan.
+      </h1>
+      <p style={{
+        fontSize: "0.95rem", color: c.textSub, fontFamily: "'Manrope', sans-serif",
+        maxWidth: 450, lineHeight: 1.6, margin: "0 0 2.5rem 0"
+      }}>
+        Insight atau tautan yang Anda cari mungkin tidak pernah ada.
+      </p>
+      <a
+        href="/"
+        onClick={(e) => {
+          e.preventDefault();
+          window.history.pushState({}, '', '/');
+          window.dispatchEvent(new CustomEvent('sovr-nav'));
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+        style={{
+          display: "inline-flex", alignItems: "center", gap: 10,
+          background: c.text, color: c.bg, padding: "0.9rem 2.2rem", borderRadius: 100,
+          textDecoration: "none", fontWeight: 700, fontSize: "0.85rem",
+          fontFamily: "'Manrope', sans-serif", transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+          cursor: "pointer"
+        }}
+        onMouseEnter={e => { 
+          e.currentTarget.style.transform = "translateY(-4px)"; 
+          e.currentTarget.style.boxShadow = theme === 'dark' ? "0 15px 30px rgba(255,255,255,0.15)" : "0 15px 30px rgba(0,0,0,0.15)"; 
+        }}
+        onMouseLeave={e => { 
+          e.currentTarget.style.transform = "translateY(0)"; 
+          e.currentTarget.style.boxShadow = "none"; 
+        }}
+      >
+        <i className="ri-arrow-left-line" style={{ fontSize: "1.1rem" }}></i> Kembali ke Beranda
+      </a>
+    </div>
+  );
+}
+
 export default function App() {
   const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -632,20 +676,18 @@ export default function App() {
   const [vaultTools, setVaultTools] = useState<any[]>([]); 
   const [tickerData, setTickerData] = useState<any>(null); 
   const [prompts, setPrompts] = useState<any[]>([]);
-  const [signals, setSignals] = useState<any[]>([]); // Tambahkan ini
+  const [signals, setSignals] = useState<any[]>([]); 
   const [authors, setAuthors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [visibleCount, setVisibleCount] = useState(3);
   const itemsPerPage = 5;
   
-  // State Router URL
   const [currentVaultSlug, setCurrentVaultSlug] = useState<string | null>(null); 
   const [targetArticleSlug, setTargetArticleSlug] = useState<string | null>(null);
   const [currentLegalSlug, setCurrentLegalSlug] = useState<string | null>(null);
   const [currentAuthorSlug, setCurrentAuthorSlug] = useState<string | null>(null);
   
-  // State Khusus Perspectives
   const [perspectives, setPerspectives] = useState<any[]>([]);
   const [pSort, setPSort] = useState("latest"); 
   const [pCat, setPCat] = useState("Semua");
@@ -654,21 +696,31 @@ export default function App() {
 
   const c = T[theme];
 
-  // Fetch Dasar
+  // 🔥 2. UPDATE KETIGA USE-EFFECT INI UNTUK MENGGUNAKAN GLOBAL CACHE
   useEffect(() => {
-    fetch("https://backend-sovr.botgampang123.workers.dev/api/ticker")
-      .then(res => res.json()).then(data => setTickerData(data)).catch(() => {});
-    fetch("https://backend-sovr.botgampang123.workers.dev/api/vault")
-      .then(res => res.json()).then(data => setVaultTools(data)).catch(() => {});
-    fetch("https://backend-sovr.botgampang123.workers.dev/api/prompts")
-      .then(res => res.json()).then(data => setPrompts(Array.isArray(data) ? data : [])).catch(() => {});
-    fetch("https://backend-sovr.botgampang123.workers.dev/api/signals")
-      .then(res => res.json()).then(data => setSignals(Array.isArray(data) ? data : [])).catch(() => {});
-    fetch("https://backend-sovr.botgampang123.workers.dev/api/authors")
-      .then(res => res.json()).then(data => setAuthors(Array.isArray(data) ? data : [])).catch(() => {});
+    if (GLOBAL_CACHE.ticker) setTickerData(GLOBAL_CACHE.ticker);
+    else fetch("https://backend-sovr.botgampang123.workers.dev/api/ticker").then(res => res.json()).then(data => { GLOBAL_CACHE.ticker = data; setTickerData(data); }).catch(() => {});
+    
+    if (GLOBAL_CACHE.vaultTools) setVaultTools(GLOBAL_CACHE.vaultTools);
+    else fetch("https://backend-sovr.botgampang123.workers.dev/api/vault").then(res => res.json()).then(data => { GLOBAL_CACHE.vaultTools = data; setVaultTools(data); }).catch(() => {});
+    
+    if (GLOBAL_CACHE.prompts) setPrompts(GLOBAL_CACHE.prompts);
+    else fetch("https://backend-sovr.botgampang123.workers.dev/api/prompts").then(res => res.json()).then(data => { const d = Array.isArray(data) ? data : []; GLOBAL_CACHE.prompts = d; setPrompts(d); }).catch(() => {});
+    
+    if (GLOBAL_CACHE.signals) setSignals(GLOBAL_CACHE.signals);
+    else fetch("https://backend-sovr.botgampang123.workers.dev/api/signals").then(res => res.json()).then(data => { const d = Array.isArray(data) ? data : []; GLOBAL_CACHE.signals = d; setSignals(d); }).catch(() => {});
+    
+    if (GLOBAL_CACHE.authors) setAuthors(GLOBAL_CACHE.authors);
+    else fetch("https://backend-sovr.botgampang123.workers.dev/api/authors").then(res => res.json()).then(data => { const d = Array.isArray(data) ? data : []; GLOBAL_CACHE.authors = d; setAuthors(d); }).catch(() => {});
   }, []);
 
   useEffect(() => {
+    if (GLOBAL_CACHE.articles) {
+      setArticles(GLOBAL_CACHE.articles);
+      setLoading(false);
+      return;
+    }
+    
     fetch("https://backend-sovr.botgampang123.workers.dev/api/articles")
       .then(res => res.json())
       .then(data => {
@@ -693,20 +745,34 @@ export default function App() {
             source: { name: cleanName, domain: cleanName, url: item.source_url || "#", logo: item.source_logo || "ri-newspaper-line", publishDate: item.published_date }
           };
         });
-        setArticles(mappedData); setLoading(false);
+        GLOBAL_CACHE.articles = mappedData;
+        setArticles(mappedData); 
+        setLoading(false);
       }).catch(() => { setLoading(false); });
   }, []);
 
-  // Fetch API Khusus Perspectives (Top/Latest/Category)
   useEffect(() => {
+    const cacheKey = `${pSort}-${pCat}`;
+    if (GLOBAL_CACHE.perspectives[cacheKey]) {
+      setPerspectives(GLOBAL_CACHE.perspectives[cacheKey]);
+      return;
+    }
+    
     let url = `https://backend-sovr.botgampang123.workers.dev/api/perspectives?sort=${pSort}`;
     if (pCat !== "Semua") url += `&category=${FMAP[pCat] || pCat.toLowerCase()}`;
     
     fetch(url)
       .then(res => res.json())
-      .then(data => setPerspectives(Array.isArray(data) ? data : []))
+      .then(data => {
+        const valid = Array.isArray(data) ? data : [];
+        GLOBAL_CACHE.perspectives[cacheKey] = valid;
+        setPerspectives(valid);
+      })
       .catch(() => {});
   }, [pSort, pCat]);
+
+  // 1. Reader Halaman Penuh + Tambah View (BIARKAN KODE DI BAWAH INI TETAP SEPERTI ASLINYA)
+// --- BATAS PERUBAHAN ---
 
   // 1. Reader Halaman Penuh + Tambah View
   useEffect(() => {
@@ -764,14 +830,22 @@ export default function App() {
         resetAll(); setMainTab('Author'); setCurrentAuthorSlug(segments[1] || null);
       } else if (segments[0] === 'feed') {
         resetAll(); setMainTab('Feed'); setTargetArticleSlug(segments[1] || null); 
-      } else {
+      } else if (!segments[0] || segments[0] === '') {
         resetAll(); setMainTab('Feed');
+      } else {
+        // 🔥 JIKA RUTE TIDAK DIKENAL, AKTIFKAN MODE 404
+        resetAll(); setMainTab('404');
       }
     };
 
     handleLocationChange();
+    // 🔥 PERUBAHAN UTAMA: Dengarkan sinyal popstate standar DAN sinyal sovr-nav kita!
     window.addEventListener('popstate', handleLocationChange);
-    return () => window.removeEventListener('popstate', handleLocationChange);
+    window.addEventListener('sovr-nav', handleLocationChange);
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('sovr-nav', handleLocationChange);
+    }
   }, []);
 
   useEffect(() => {
@@ -808,11 +882,16 @@ export default function App() {
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: c.bg }}>
       <Navbar theme={theme} setTheme={setTheme} mainTab={mainTab} />
       
-      {mainTab === "Feed" && !currentVaultSlug && !currentLegalSlug && !currentPerspectiveSlug && <Ticker theme={theme} tickerData={tickerData} />}
-      {mainTab === "Feed" && !currentVaultSlug && !currentLegalSlug && !currentPerspectiveSlug && <Hero theme={theme} tickerData={tickerData} articles={articles} perspectives={perspectives} />}
+      {/* Ticker & Hero (Hanya muncul di Feed Utama) */}
+      {mainTab === "Feed" && !targetArticleSlug && !currentAuthorSlug && !currentVaultSlug && !currentLegalSlug && !currentPerspectiveSlug && (
+        <>
+          <Ticker theme={theme} tickerData={tickerData} />
+          <Hero theme={theme} tickerData={tickerData} articles={articles} perspectives={perspectives} />
+        </>
+      )}
       
-      {/* PERHATIKAN: minHeight dihapus dan diganti dengan flex: 1 */}
-      <section id="feed" style={{ background: c.bg, flex: 1, transition: "background 0.4s" }}>
+      {/* 🟢 2. PEMBUKA SECTION & MAIN */}
+        <section id="feed" style={{ background: c.bg, flex: 1, transition: "background 0.4s" }}>
         
         <style>{`
           .app-container {
@@ -863,32 +942,39 @@ export default function App() {
           }
         `}</style>
 
-        <div className={`app-container ${(currentVaultSlug || currentLegalSlug || currentPerspectiveSlug || currentAuthorSlug) ? "wide" : (mainTab === "Feed" ? "desktop-feed" : "standard")}`}>
-          
-          {currentLegalSlug ? (
-            <LegalPage type={currentLegalSlug} theme={theme} />
-          ) : currentAuthorSlug ? (
-            <AuthorProfile 
-              author={authors.find(a => a.slug === currentAuthorSlug) || { name: currentAuthorSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), slug: currentAuthorSlug }} 
-              articles={articles.filter(a => slugify(a.author) === currentAuthorSlug)} 
-              perspectives={perspectives.filter(p => slugify(p.author) === currentAuthorSlug)} 
-              theme={theme} 
-            />
-          ) : currentPerspectiveSlug && activePerspective ? (
-            <PerspectiveReader 
-              article={activePerspective} 
-              allArticles={perspectives} 
-              theme={theme} 
-              onBack={() => {
-                window.history.pushState({}, '', '/perspectives');
-                window.dispatchEvent(new Event('popstate'));
-              }}
-              onNavigate={(title: string) => {
-                window.history.pushState({}, '', `/perspectives/${slugify(title)}`);
-                window.dispatchEvent(new Event('popstate'));
-                setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 50);
-              }} 
-            />          
+        {/* 🔥 RENDER KOMPONEN 404 (Berdiri Sendiri agar Full Screen) */}
+        {mainTab === "404" ? (
+          <NotFoundUI theme={theme} />
+        ) : (
+          /* 🔥 PEMBUNGKUS DINAMIS (Hanya ada 1 lapis, tidak tumpang tindih) */
+          <div className={`app-container ${(currentVaultSlug || currentLegalSlug || currentPerspectiveSlug || currentAuthorSlug) ? "wide" : (mainTab === "Feed" ? "desktop-feed" : "standard")}`}>
+            
+            {currentLegalSlug ? (
+              <LegalPage type={currentLegalSlug} theme={theme} />
+            ) : currentAuthorSlug ? (
+              <AuthorProfile 
+                author={authors.find(a => a.slug === currentAuthorSlug) || { name: currentAuthorSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), slug: currentAuthorSlug }} 
+                articles={articles.filter(a => slugify(a.author) === currentAuthorSlug)} 
+                perspectives={perspectives.filter(p => slugify(p.author) === currentAuthorSlug)} 
+                theme={theme} 
+              />
+            ) : currentPerspectiveSlug && activePerspective ? (
+              <PerspectiveReader 
+                article={activePerspective} 
+                allArticles={perspectives} 
+                theme={theme} 
+                onBack={() => {
+                  window.history.pushState({}, '', '/perspectives');
+                  // 🔥 FIX: Gunakan CustomEvent agar tidak refresh 2x
+                  window.dispatchEvent(new CustomEvent('sovr-nav')); 
+                }}
+                onNavigate={(title: string) => {
+                  window.history.pushState({}, '', `/perspectives/${slugify(title)}`);
+                  // 🔥 FIX: Gunakan CustomEvent agar tidak refresh 2x
+                  window.dispatchEvent(new CustomEvent('sovr-nav'));
+                  setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 50);
+                }} 
+              />
           ) : currentVaultSlug ? (
             <VaultDetail tool={vaultTools.find(t => slugify(t.name) === currentVaultSlug)} allTools={vaultTools} theme={theme} />
          ) : mainTab === "Perspectives" ? (
@@ -1051,6 +1137,7 @@ export default function App() {
             <EditorSection theme={theme} articles={articles} />
           )}
         </div>
+      )}
       </section>
 
       {/* 🔥 TAMBAHAN: Komponen Search diletakkan di root App agar floating button-nya global */}
@@ -1060,6 +1147,8 @@ export default function App() {
         perspectives={perspectives} 
         theme={theme} 
       />
+
+      
 
       <Footer theme={theme} />
     </div>

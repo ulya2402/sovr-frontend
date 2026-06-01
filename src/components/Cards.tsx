@@ -1,27 +1,21 @@
+// --- AWAL PERUBAHAN FULL FILE: src/components/Cards.tsx ---
 import { useState, useEffect, useRef } from "react";
 import { toPng } from "html-to-image";
 import { T } from "../theme";
-import { slugify } from "../App"; // 🔥 FIX: Mengimpor fungsi slugify dari App.tsx
+import { slugify } from "../App";
 
-// ─────────────────────────────────────────────
-// SISTEM DESAIN — satu sumber kebenaran
-// Ubah di sini, berlaku ke seluruh card
-// ─────────────────────────────────────────────
-
-// Ukuran font — mode normal (layar)
 const FONT = {
-  authorLabel:  "0.72rem",   // nama penulis
-  timeLabel:    "0.68rem",   // waktu/tanggal
-  tagLabel:     "0.63rem",   // badge kategori
-  titleFeed:    "1.15rem",   // judul card feed
-  titleEditor:  "1.4rem",    // judul card editor (lebih besar, lebih premium)
-  body:         "0.88rem",   // isi berita
-  sourceLabel:  "0.55rem",   // label "Sumber Referensi"
-  sourceName:   "0.82rem",   // nama sumber
-  domainBrand:  "0.78rem",   // domain watermark di footer
+  authorLabel:  "0.72rem",
+  timeLabel:    "0.68rem",
+  tagLabel:     "0.63rem",
+  titleFeed:    "1.15rem",
+  titleEditor:  "1.4rem",
+  body:         "0.88rem",
+  sourceLabel:  "0.55rem",
+  sourceName:   "0.82rem",
+  domainBrand:  "0.78rem",
 };
 
-// Ukuran font — mode download (gambar 640px = setara desktop 1080px karena pixelRatio 3×)
 const FONT_CAP = {
   authorLabel:  "0.78rem",
   timeLabel:    "0.72rem",
@@ -34,24 +28,17 @@ const FONT_CAP = {
   domainBrand:  "0.82rem",
 };
 
-// Spacing vertikal antar section — GAP di flex column
-const GAP_NORMAL  = 12;   // px, jarak antar section saat di layar
-const GAP_CAPTURE = 16;   // px, sedikit lebih longgar saat jadi gambar
+const GAP_NORMAL  = 12;
+const GAP_CAPTURE = 16;
 
-// Padding card
 const PAD_CAPTURE = "2.2rem 2.6rem";
 
-// Lebar gambar download
 const CAPTURE_WIDTH = 640;
 
-// ─────────────────────────────────────────────
-// HELPER: style font + warna — DRY
-// ─────────────────────────────────────────────
 const MR = (extra?: React.CSSProperties): React.CSSProperties => ({
   fontFamily: "'Manrope', sans-serif",
   ...extra,
 });
-
 
 export function Card({ card, theme, idx }: any) {
   const c = T[theme];
@@ -172,20 +159,22 @@ export function Card({ card, theme, idx }: any) {
           onClick={() => !isCapturing && setIsExpanded(!isExpanded)}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span 
+            <a 
+              href={`/author/${slugify(card.author)}`}
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 if (isCapturing) return;
                 window.history.pushState({}, '', `/author/${slugify(card.author)}`);
-                window.dispatchEvent(new Event('popstate'));
+                window.dispatchEvent(new CustomEvent('sovr-nav'));
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
-              style={MR({ fontSize: F.authorLabel, fontWeight: 800, color: c.accent, textTransform: "uppercase", letterSpacing: "0.1em", cursor: isCapturing ? "default" : "pointer", transition: "text-decoration 0.2s" })}
+              style={MR({ display: "inline-block", fontSize: F.authorLabel, fontWeight: 800, color: c.accent, textTransform: "uppercase", letterSpacing: "0.1em", textDecoration: "none", cursor: isCapturing ? "default" : "pointer", transition: "text-decoration 0.2s" })}
               onMouseEnter={(e) => { if(!isCapturing) e.currentTarget.style.textDecoration = "underline"; }}
               onMouseLeave={(e) => { if(!isCapturing) e.currentTarget.style.textDecoration = "none"; }}
             >
               {card.author}
-            </span>
+            </a>
           </div>
           <span style={MR({ fontSize: F.timeLabel, fontWeight: 600, color: c.textMuted, letterSpacing: "0.02em", opacity: 0.8 })}>
             {card.time}
@@ -334,12 +323,7 @@ export function Card({ card, theme, idx }: any) {
     </>
   );
 }
-// --- AWAL PERUBAHAN 1: src/components/Cards.tsx ---
 
-// ══════════════════════════════════════════════
-// 2. KARTU PILIHAN EDITOR
-// ══════════════════════════════════════════════
-// --- AWAL PERUBAHAN: src/components/Cards.tsx (Fungsi EditorCard UTUH) ---
 export function EditorCard({ card, theme, idx }: any) {
   const c = T[theme];
   const [isExpanded, setIsExpanded]   = useState(true);
@@ -384,13 +368,13 @@ export function EditorCard({ card, theme, idx }: any) {
       const dataUrl = await toPng(cardRef.current, {
         quality: 1.0,
         pixelRatio: 3,
-        width: 640,
+        width: CAPTURE_WIDTH,
         backgroundColor: c.bg,
         style: {
           margin: "0",
           transform: "none",
-          width: `640px`,
-          minWidth: `640px`,
+          width: `${CAPTURE_WIDTH}px`,
+          minWidth: `${CAPTURE_WIDTH}px`,
           boxSizing: "border-box",
         },
         filter: (node: Element) =>
@@ -409,15 +393,7 @@ export function EditorCard({ card, theme, idx }: any) {
     }
   };
 
-  const F = isCapturing ? { titleEditor: "1.55rem", body: "0.95rem", authorLabel: "0.78rem", timeLabel: "0.72rem", tagLabel: "0.68rem", sourceLabel: "0.58rem", sourceName: "0.88rem", domainBrand: "0.82rem" } : { titleEditor: "1.4rem", body: "0.88rem", authorLabel: "0.72rem", timeLabel: "0.68rem", tagLabel: "0.63rem", sourceLabel: "0.55rem", sourceName: "0.82rem", domainBrand: "0.78rem" };
-  const GAP_NORMAL = 12;
-  const GAP_CAPTURE = 16;
-  const CAPTURE_WIDTH = 640;
-
-  const MR = (extra?: React.CSSProperties): React.CSSProperties => ({
-    fontFamily: "'Manrope', sans-serif",
-    ...extra,
-  });
+  const F = isCapturing ? FONT_CAP : FONT;
 
   return (
     <>
@@ -472,20 +448,22 @@ export function EditorCard({ card, theme, idx }: any) {
               <i className="ri-quill-pen-line" style={{ fontSize: "1.1rem" }} />
             </div>
             <div>
-              <div 
+              <a 
+                href={`/author/${slugify(card.author)}`}
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   if (isCapturing) return;
                   window.history.pushState({}, '', `/author/${slugify(card.author)}`);
-                  window.dispatchEvent(new Event('popstate'));
+                  window.dispatchEvent(new CustomEvent('sovr-nav'));
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
-                style={MR({ fontSize: F.authorLabel, fontWeight: 700, color: c.accent, textTransform: "uppercase", letterSpacing: "0.06em", cursor: isCapturing ? "default" : "pointer", transition: "text-decoration 0.2s" })}
+                style={MR({ display: "block", fontSize: F.authorLabel, fontWeight: 700, color: c.accent, textTransform: "uppercase", letterSpacing: "0.06em", textDecoration: "none", cursor: isCapturing ? "default" : "pointer", transition: "text-decoration 0.2s" })}
                 onMouseEnter={(e) => { if(!isCapturing) e.currentTarget.style.textDecoration = "underline"; }}
                 onMouseLeave={(e) => { if(!isCapturing) e.currentTarget.style.textDecoration = "none"; }}
               >
                 {card.author}
-              </div>
+              </a>
               <div style={MR({ fontSize: F.timeLabel, color: c.textMuted, fontWeight: 500, marginTop: 2 })}>
                 {card.time}
               </div>
@@ -632,3 +610,4 @@ export function EditorCard({ card, theme, idx }: any) {
     </>
   );
 }
+// --- BATAS PERUBAHAN FULL FILE ---

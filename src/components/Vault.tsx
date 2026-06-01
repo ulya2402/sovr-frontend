@@ -87,10 +87,7 @@ export function VaultGrid({ tools, theme }: any) {
 
   const handleOpenDetail = (tool: any) => {
     const slug = slugify(tool.name);
-    const newUrl = `/vault/${slug}`; 
-    window.history.pushState({ path: newUrl }, '', newUrl);
-    window.dispatchEvent(new Event('popstate'));
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.location.href = `/vault/${slug}`;
   };
 
   return (
@@ -156,32 +153,12 @@ export function VaultDetail({ tool, allTools, theme }: any) {
   const c = T[theme];
 
   const handleBack = () => {
-    window.history.pushState({}, '', '/vault'); 
-    window.dispatchEvent(new Event('popstate'));
-    
-    setTimeout(() => {
-      const feedEl = document.getElementById("feed");
-      if (feedEl) {
-        const y = feedEl.getBoundingClientRect().top + window.scrollY - 40;
-        window.scrollTo({ top: y, behavior: "smooth" });
-      }
-    }, 150); // Jeda agar tidak bertabrakan dengan render Hero
+    window.location.href = '/vault';
   };
 
-  // 🔥 PERBAIKAN: Jeda mulus untuk related tools
   const handleOpenRelated = (tool: any) => {
     const slug = slugify(tool.name);
-    const newUrl = `/vault/${slug}`;
-    window.history.pushState({ path: newUrl }, '', newUrl);
-    window.dispatchEvent(new Event('popstate'));
-    
-    setTimeout(() => {
-      const feedEl = document.getElementById("feed");
-      if (feedEl) {
-        const y = feedEl.getBoundingClientRect().top + window.scrollY - 40;
-        window.scrollTo({ top: y, behavior: "smooth" });
-      }
-    }, 50);
+    window.location.href = `/vault/${slug}`;
   };
   
   if (!tool) return null;

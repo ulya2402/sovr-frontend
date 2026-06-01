@@ -1,0 +1,19 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { PerspectiveReaderPage } from '../../AstroWrappers.tsx';
+import { slugify } from '../../App.tsx';
+
+export async function getStaticPaths() {
+  const response = await fetch("https://backend-sovr.botgampang123.workers.dev/api/perspectives?sort=latest");
+  const data = await response.json();
+  return data.map((post: any) => ({
+    params: { slug: slugify(post.title) },
+    props: { post, allPosts: data }
+  }));
+}
+
+const { post, allPosts } = Astro.props;
+---
+<Layout title={`${post.title} | SOVR. Perspectives`}>
+  <PerspectiveReaderPage post={post} allPosts={allPosts} client:load />
+</Layout>

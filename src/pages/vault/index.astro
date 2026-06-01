@@ -1,0 +1,10 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { VaultPage } from '../../AstroWrappers.tsx';
+
+const response = await fetch("https://backend-sovr.botgampang123.workers.dev/api/vault");
+const vaultTools = await response.json();
+---
+<Layout title="The Vault | SOVR. Kumpulan Tools AI">
+  <VaultPage tools={vaultTools} client:load />
+</Layout>

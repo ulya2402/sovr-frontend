@@ -795,27 +795,39 @@ export function Ticker({ theme, tickerData }: any) {
   );
 }
 
-// --- AWAL PERUBAHAN 2: src/components/Layout.tsx ---
-// --- AWAL PERUBAHAN: src/components/Layout.tsx ---
-export function Navbar({ theme, setTheme, mainTab }: any) {
+// --- AWAL PERUBAHAN: Fungsi Navbar UTUH ---
+export function Navbar({ theme, setTheme, mainTab, onNavigate }: any) {
   const c = T[theme];
   
   const handleTabClick = (tabName: string) => {
-    let newPath = "/";
-    if (tabName === "Feed") newPath = "/feed";
-    if (tabName === "Pilihan Editor") newPath = "/editor-picks";
-    if (tabName === "Vault") newPath = "/vault";
-    if (tabName === "Perspectives") newPath = "/perspectives";
+    if (tabName === "Vault") {
+      if (onNavigate) onNavigate(tabName);
+      else import('astro:transitions/client').then(({ navigate }) => navigate("/vault"));
+      return;
+    }
+    if (tabName === "Perspectives") {
+      if (onNavigate) onNavigate(tabName);
+      else import('astro:transitions/client').then(({ navigate }) => navigate("/perspectives"));
+      return;
+    }
 
+    if (onNavigate) {
+      onNavigate(tabName);
+      return;
+    }
+
+    let newPath = "/";
+    if (tabName === "Feed") newPath = "/";
+    if (tabName === "Pilihan Editor") newPath = "/editor-picks";
+    
     window.history.pushState({}, '', newPath);
-    window.dispatchEvent(new Event('popstate'));
+    // 🔥 PERUBAHAN UTAMA: Gunakan sinyal rahasia "sovr-nav"
+    window.dispatchEvent(new CustomEvent('sovr-nav'));
     
     setTimeout(() => {
       if (tabName !== "Feed") {
-        // Halaman Perspectives, Vault, Pilihan Editor: Langsung diam di paling atas layar
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
-        // Khusus Feed: Scroll turun sedikit melewati Hero
         const feedEl = document.getElementById("feed");
         if (feedEl) {
           const y = feedEl.getBoundingClientRect().top + window.scrollY - 40;
@@ -859,10 +871,8 @@ export function Navbar({ theme, setTheme, mainTab }: any) {
           title="Perspectives (Blog)"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
-  <path d="M12 4C7 4 2.73 7.11 1 11.5 2.73 15.89 7 19 12 19s9.27-3.11 11-7.5C21.27 7.11 17 4 12 4zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
-</svg>
-
-
+            <path d="M12 4C7 4 2.73 7.11 1 11.5 2.73 15.89 7 19 12 19s9.27-3.11 11-7.5C21.27 7.11 17 4 12 4zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
+          </svg>
         </button>
 
         <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} style={{ background: "transparent", border: `1px solid ${c.border}`, borderRadius: 6, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: c.accent, fontSize: "0.9rem", transition: "all 0.2s" }}>

@@ -1,0 +1,56 @@
+---
+const { 
+  title = "SOVR. - Insight in Seconds", 
+  description = "Insight cepat seputar AI dan crypto." 
+} = Astro.props;
+
+import { ViewTransitions } from 'astro:transitions';
+
+import '../index.css';
+import '../App.css'; 
+---
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <title>{title}</title>
+    <meta name="title" content={title} />
+    <meta name="description" content={description} />
+    
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://sovr.news/" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content="https://sovr.news/banner.jpg" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://sovr.news/" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content="https://sovr.news/banner.jpg" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet" />
+
+    <ViewTransitions />
+
+    <script is:inline>
+      const savedTheme = localStorage.getItem('sovr_theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      
+      document.addEventListener('astro:after-swap', () => {
+        const currentTheme = localStorage.getItem('sovr_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+      });
+    </script>
+  </head>
+  <body style="margin: 0; padding: 0;" transition:animate="none">
+    <slot />
+  </body>
+</html>

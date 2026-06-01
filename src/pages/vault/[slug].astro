@@ -1,0 +1,19 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { VaultDetailPage } from '../../AstroWrappers.tsx';
+import { slugify } from '../../App.tsx';
+
+export async function getStaticPaths() {
+  const response = await fetch("https://backend-sovr.botgampang123.workers.dev/api/vault");
+  const data = await response.json();
+  return data.map((tool: any) => ({
+    params: { slug: slugify(tool.name) },
+    props: { tool, allTools: data }
+  }));
+}
+
+const { tool, allTools } = Astro.props;
+---
+<Layout title={`${tool.name} | SOVR. AI Tools`}>
+  <VaultDetailPage tool={tool} allTools={allTools} client:load />
+</Layout>
