@@ -80,8 +80,12 @@ function InlinePerspectives({ perspectives, theme }: any) {
           <div style={{ width: "100%", height: 200, borderRadius: 12, overflow: "hidden", background: c.accentDim }}>
             <img
               className="hero-img"
-              src={hero.image_url || `https://via.placeholder.com/600x300?text=SOVR+Perspectives`}
+              /* 🔥 1. OPTIMASI UKURAN GAMBAR (Resize ke 800px) */
+              src={hero.image_url ? `${hero.image_url}&w=800` : `https://via.placeholder.com/600x300?text=SOVR+Perspectives`}
               alt={hero.title}
+              /* 🔥 2. OPTIMASI LCP (Jangan diload lambat/lazy jika ini gambar besar di atas) */
+              fetchPriority="high"
+              loading="eager"
               style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)" }}
             />
           </div>
@@ -660,7 +664,7 @@ function NotFoundUI({ theme }: { theme: string }) {
 }
 
 export default function App() {
-  const [theme, setTheme] = useState(() => {
+  const [theme, setThemeState] = useState(() => {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('sovr_theme');
       if (savedTheme) return savedTheme;
@@ -668,19 +672,40 @@ export default function App() {
     return "light"; 
   });
 
-  useEffect(() => { localStorage.setItem('sovr_theme', theme); }, [theme]);
+  const setTheme = (newTheme: string) => {
+    setThemeState(newTheme);
+    localStorage.setItem('sovr_theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+    window.dispatchEvent(new Event('theme-changed'));
+  };
+
+  useEffect(() => {
+    const syncTheme = () => {
+      const currentTheme = localStorage.getItem('sovr_theme') || 'light';
+      if (theme !== currentTheme) setThemeState(currentTheme);
+    };
+    window.addEventListener('theme-changed', syncTheme);
+    document.addEventListener('astro:after-swap', syncTheme);
+    return () => {
+      window.removeEventListener('theme-changed', syncTheme);
+      document.removeEventListener('astro:after-swap', syncTheme);
+    };
+  }, [theme]);
 
   const [filter, setFilter] = useState("Semua");
   const [mainTab, setMainTab] = useState("Feed");
-  const [articles, setArticles] = useState<any[]>([]);
-  const [vaultTools, setVaultTools] = useState<any[]>([]); 
-  const [tickerData, setTickerData] = useState<any>(null); 
-  const [prompts, setPrompts] = useState<any[]>([]);
-  const [signals, setSignals] = useState<any[]>([]); 
-  const [authors, setAuthors] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  // Inisialisasi Synchronous Cache: Langsung ambil data agar Feed tidak berkedip (Flicker) saat kembali!
+  const [articles, setArticles] = useState<any[]>(() => GLOBAL_CACHE.articles || []);
+  const [vaultTools, setVaultTools] = useState<any[]>(() => GLOBAL_CACHE.vaultTools || []);
+  const [tickerData, setTickerData] = useState<any>(() => GLOBAL_CACHE.ticker || null);
+  const [prompts, setPrompts] = useState<any[]>(() => GLOBAL_CACHE.prompts || []);
+  const [signals, setSignals] = useState<any[]>(() => GLOBAL_CACHE.signals || []);
+  const [authors, setAuthors] = useState<any[]>(() => GLOBAL_CACHE.authors || []);
+  const [loading, setLoading] = useState(() => !GLOBAL_CACHE.articles);
   
   const [visibleCount, setVisibleCount] = useState(3);
+  
   const itemsPerPage = 5;
   
   const [currentVaultSlug, setCurrentVaultSlug] = useState<string | null>(null); 

@@ -875,9 +875,15 @@ export function Navbar({ theme, setTheme, mainTab, onNavigate }: any) {
           </svg>
         </button>
 
-        <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} style={{ background: "transparent", border: `1px solid ${c.border}`, borderRadius: 6, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: c.accent, fontSize: "0.9rem", transition: "all 0.2s" }}>
-          <i className={theme === "dark" ? "ri-sun-fill" : "ri-moon-fill"} />
+        {/* --- AWAL PERUBAHAN: Penambahan suppressHydrationWarning --- */}
+        <button 
+          suppressHydrationWarning
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")} 
+          style={{ background: "transparent", border: `1px solid ${c.border}`, borderRadius: 6, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: c.accent, fontSize: "0.9rem", transition: "all 0.2s" }}
+        >
+          <i suppressHydrationWarning className={theme === "dark" ? "ri-sun-fill" : "ri-moon-fill"} />
         </button>
+        {/* --- BATAS PERUBAHAN --- */}
       </div>
 
     </nav>
