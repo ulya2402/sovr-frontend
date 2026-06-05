@@ -825,10 +825,10 @@ export default function App() {
       if (targetArticle) {
         document.title = `${targetArticle.title} | SOVR.`;
       } else {
-        document.title = "SOVR. | Portal Informasi AI & Kripto";
+        document.title = "SOVR. - Insight in Second";
       }
     } else {
-      document.title = "SOVR. | Portal Informasi AI & Kripto";
+      document.title = "SOVR. - Insight in Second";
     }
   }, [currentPerspectiveSlug, activePerspective, targetArticleSlug, articles]);
   // URL Router / Mesin State
