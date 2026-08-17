@@ -906,7 +906,8 @@ export function Footer({ theme }: { theme: string }) {
     <footer style={{ borderTop: `1px solid ${c.border}`, background: c.bg, padding: "3rem 1.5rem" }}>
       <div style={{ maxWidth: 680, margin: "0 auto", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
         
-        {/* Link Navigasi Legal */}
+        {/* Link Navigasi Legal (DISEMBUNYIKAN SEMENTARA UNTUK PUBLIK) */}
+        {/* 
         <div style={{ display: "flex", gap: 24, flexWrap: "wrap", justifyContent: "center" }}>
           {[
             { label: "About", path: "/about" },
@@ -928,6 +929,7 @@ export function Footer({ theme }: { theme: string }) {
             </button>
           ))}
         </div>
+        */}
 
         {/* Hak Cipta */}
         <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 600, color: c.textMuted, opacity: 0.6 }}>
