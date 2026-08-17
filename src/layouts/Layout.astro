@@ -8,6 +8,8 @@ import { ViewTransitions } from 'astro:transitions';
 
 import '../index.css';
 import '../App.css'; 
+
+const isProd = import.meta.env.PROD;
 ---
 <!DOCTYPE html>
 <html lang="id">
@@ -52,5 +54,10 @@ import '../App.css';
   </head>
   <body style="margin: 0; padding: 0;">
     <slot />
+    {isProd && (
+      <script is:inline>
+        (function(s){s.dataset.zone='11592884',s.src='https://zovidree.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
+      </script>
+    )}
   </body>
 </html>
