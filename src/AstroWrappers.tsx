@@ -46,27 +46,38 @@ const forceNav = (tabName: string) => {
   else if (tabName === "Perspectives") navigate("/perspectives");
 };
 
+// --- AWAL PERUBAHAN: src/AstroWrappers.tsx ---
 export function PerspectivesIndexPage({ perspectives }: { perspectives: any[] }) {
-  const { theme, setTheme } = useTheme(); // Tidak ada lagi variabel `mounted`
+  const { theme, setTheme } = useTheme();
   const [pSort, setPSort] = useState("latest");
   const [pCat, setPCat] = useState("Semua");
+  const [liveData, setLiveData] = useState(perspectives);
   const [displayedPerspectives, setDisplayedPerspectives] = useState(perspectives);
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
+    fetch(`https://backend-sovr.botgampang123.workers.dev/api/perspectives?sort=${pSort}`)
+      .then(res => res.json())
+      .then(data => {
+        if(Array.isArray(data)) setLiveData(data);
+      })
+      .catch(err => console.error("Internal Fetch Error:", err));
+  }, [pSort]);
+
+  useEffect(() => {
     setIsAnimating(true);
     const timer = setTimeout(() => {
-      let filtered = [...perspectives];
+      let filtered = [...liveData];
       
       if (pCat !== "Semua") {
-         const mappedCat = FMAP[pCat] || pCat.toLowerCase();
-         filtered = filtered.filter(p => p.category?.toLowerCase() === mappedCat);
+        const mappedCat = FMAP[pCat] || pCat.toLowerCase();
+        filtered = filtered.filter(p => p.category?.toLowerCase() === mappedCat);
       }
       
       if (pSort === "latest") {
-         filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       } else if (pSort === "top") {
-         filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+        filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
       }
       
       setDisplayedPerspectives(filtered);
@@ -74,7 +85,7 @@ export function PerspectivesIndexPage({ perspectives }: { perspectives: any[] })
     }, 300);
     
     return () => clearTimeout(timer);
-  }, [pCat, pSort, perspectives]);
+  }, [pCat, pSort, liveData]);
 
   const c = T[theme as keyof typeof T];
 
@@ -104,20 +115,19 @@ export function PerspectivesIndexPage({ perspectives }: { perspectives: any[] })
             <h1 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "2rem", fontWeight: 800, letterSpacing: "-0.02em", color: c.text }}>Perspectives.</h1>
             <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.85rem", color: c.textSub }}>Membahas teknologi dari sudut pandang manusia</p>
           </div>
-
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {FILTERS.map(f => (
-                <button 
-                  key={f} 
-                  onClick={() => setPCat(f)} 
-                  style={{ 
-                    fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.05em", 
-                    textTransform: "uppercase", 
-                    color: pCat === f ? c.bg : c.textMuted, 
-                    background: pCat === f ? c.accent : "transparent", 
-                    border: `1px solid ${pCat === f ? c.accent : c.border}`, 
-                    borderRadius: 100, padding: "0.35rem 1rem", cursor: "pointer", transition: "all 0.2s" 
+                <button
+                  key={f}
+                  onClick={() => setPCat(f)}
+                  style={{
+                    fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.05em",
+                    textTransform: "uppercase",
+                    color: pCat === f ? c.bg : c.textMuted,
+                    background: pCat === f ? c.accent : "transparent",
+                    border: `1px solid ${pCat === f ? c.accent : c.border}`,
+                    borderRadius: 100, padding: "0.35rem 1rem", cursor: "pointer", transition: "all 0.2s"
                   }}
                 >
                   {f}
@@ -129,10 +139,9 @@ export function PerspectivesIndexPage({ perspectives }: { perspectives: any[] })
               <button onClick={() => setPSort("top")} style={{ fontFamily: "'Manrope', sans-serif", border: "none", background: pSort === "top" ? c.accent : "transparent", color: pSort === "top" ? c.bg : c.textMuted, fontSize: "0.65rem", fontWeight: 700, padding: "0.4rem 0.8rem", borderRadius: 6, cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", transition: "all 0.2s" }}>Top Readers</button>
             </div>
           </div>
-
           <div className={`grid-transition ${isAnimating ? 'grid-hidden' : 'grid-visible'}`} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "2rem" }}>
             {displayedPerspectives.length === 0 ? (
-               <p style={{ color: c.textMuted, gridColumn: "1/-1", textAlign: "center", fontFamily: "'Manrope', sans-serif", fontWeight: 600 }}>Belum ada artikel Perspectives untuk kategori ini.</p>
+              <p style={{ color: c.textMuted, gridColumn: "1/-1", textAlign: "center", fontFamily: "'Manrope', sans-serif", fontWeight: 600 }}>Belum ada artikel Perspectives untuk kategori ini.</p>
             ) : (
               displayedPerspectives.map((art: any) => (
                 <PerspectiveCard key={art.id} article={art} theme={theme} onClick={() => { navigate(`/perspectives/${slugify(art.title)}`); }} />
@@ -148,7 +157,25 @@ export function PerspectivesIndexPage({ perspectives }: { perspectives: any[] })
 
 export function PerspectiveReaderPage({ post, allPosts }: { post: any, allPosts: any[] }) {
   const { theme, setTheme } = useTheme();
+  const [livePost, setLivePost] = useState(post);
+  const [liveAllPosts, setLiveAllPosts] = useState(allPosts);
   const c = T[theme as keyof typeof T];
+
+  useEffect(() => {
+    fetch(`https://backend-sovr.botgampang123.workers.dev/api/perspectives?id=${post.id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && !Array.isArray(data)) setLivePost(data);
+      })
+      .catch(err => console.error("Internal Fetch Error:", err));
+
+    fetch("https://backend-sovr.botgampang123.workers.dev/api/perspectives?sort=latest")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setLiveAllPosts(data);
+      })
+      .catch(err => console.error("Internal Fetch Error:", err));
+  }, [post.id]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: c.bg }}>
@@ -161,12 +188,12 @@ export function PerspectiveReaderPage({ post, allPosts }: { post: any, allPosts:
         `}</style>
         <div className="app-container wide">
           <div style={{ paddingTop: "2rem" }}>
-            <PerspectiveReader 
-               article={post} 
-               allArticles={allPosts} 
-               theme={theme} 
-               onBack={() => { navigate('/perspectives'); }}
-               onNavigate={(title: string) => { navigate(`/perspectives/${slugify(title)}`); }}
+            <PerspectiveReader
+                article={livePost}
+                allArticles={liveAllPosts}
+                theme={theme}
+                onBack={() => { navigate('/perspectives'); }}
+                onNavigate={(title: string) => { navigate(`/perspectives/${slugify(title)}`); }}
             />
           </div>
         </div>
@@ -178,7 +205,17 @@ export function PerspectiveReaderPage({ post, allPosts }: { post: any, allPosts:
 
 export function VaultPage({ tools }: { tools: any[] }) {
   const { theme, setTheme } = useTheme();
+  const [liveTools, setLiveTools] = useState(tools);
   const c = T[theme as keyof typeof T];
+
+  useEffect(() => {
+    fetch("https://backend-sovr.botgampang123.workers.dev/api/vault")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setLiveTools(data);
+      })
+      .catch(err => console.error("Internal Fetch Error:", err));
+  }, []);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: c.bg }}>
@@ -191,7 +228,7 @@ export function VaultPage({ tools }: { tools: any[] }) {
         `}</style>
         <div className="app-container ultra">
           <div style={{ paddingTop: "2rem" }}>
-            <VaultGrid tools={tools} theme={theme} />
+            <VaultGrid tools={liveTools} theme={theme} />
           </div>
         </div>
       </section>
@@ -202,7 +239,22 @@ export function VaultPage({ tools }: { tools: any[] }) {
 
 export function VaultDetailPage({ tool, allTools }: { tool: any, allTools: any[] }) {
   const { theme, setTheme } = useTheme();
+  const [liveTool, setLiveTool] = useState(tool);
+  const [liveAllTools, setLiveAllTools] = useState(allTools);
   const c = T[theme as keyof typeof T];
+
+  useEffect(() => {
+    fetch("https://backend-sovr.botgampang123.workers.dev/api/vault")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+           setLiveAllTools(data);
+           const updatedTool = data.find(t => slugify(t.name) === slugify(tool.name));
+           if(updatedTool) setLiveTool(updatedTool);
+        }
+      })
+      .catch(err => console.error("Internal Fetch Error:", err));
+  }, [tool.name]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: c.bg }}>
@@ -215,7 +267,7 @@ export function VaultDetailPage({ tool, allTools }: { tool: any, allTools: any[]
         `}</style>
         <div className="app-container wide">
           <div style={{ paddingTop: "2rem" }}>
-            <VaultDetail tool={tool} allTools={allTools} theme={theme} />
+            <VaultDetail tool={liveTool} allTools={liveAllTools} theme={theme} />
           </div>
         </div>
       </section>
@@ -223,4 +275,5 @@ export function VaultDetailPage({ tool, allTools }: { tool: any, allTools: any[]
     </div>
   );
 }
-// --- BATAS PERUBAHAN FULL FILE ---
+// --- BATAS PERUBAHAN ---
+
