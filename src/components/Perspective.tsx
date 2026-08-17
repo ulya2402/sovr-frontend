@@ -1,7 +1,15 @@
-// --- AWAL PERUBAHAN ---
+// --- AWAL PERUBAHAN: src/components/Perspective.tsx ---
 import { T } from "../theme";
 import { useEffect, useRef } from "react";
 import { slugify } from "../App";
+
+function calculateReadTime(text: string): number {
+  if (!text) return 1;
+  const cleanText = text.replace(/<[^>]+>/g, '');
+  const wordCount = cleanText.trim().split(/\s+/).length;
+  const readTime = Math.ceil(wordCount / 225);
+  return readTime > 0 ? readTime : 1;
+}
 
 export function PerspectiveCard({ article, theme, onClick }: any) {
   const c = T[theme];
@@ -38,11 +46,10 @@ export function PerspectiveCard({ article, theme, onClick }: any) {
           {article.category}
         </div>
         <div style={{ position: "absolute", bottom: 12, right: 12, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", color: "#fff", padding: "0.35rem 0.7rem", borderRadius: 8, fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
-          <i className="ri-bar-chart-2-fill" /> {article.views}
+          <i className="ri-time-line" /> {calculateReadTime(article.body)} Min Read
         </div>
       </div>
       <div>
-        {/* PERBAIKAN 1: Flexbox Presisi pada Baris Tanggal & Penulis di Halaman Depan */}
         <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.65rem", color: c.textMuted, fontWeight: 700, marginBottom: "0.6rem", textTransform: "uppercase", letterSpacing: "0.05em", display: "flex", alignItems: "center" }}>
           <span>{article.published_date}</span>
           <span style={{ margin: "0 8px", opacity: 0.5 }}>|</span>
@@ -121,11 +128,6 @@ export function PerspectiveReader({ article, allArticles = [], theme, onBack, on
       </div>
 
       <style>{`
-        @keyframes smoothReveal {
-          0% { opacity: 0; transform: translateY(24px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-        
         .p-content { font-family: 'Manrope', sans-serif; font-size: 1.05rem; color: ${c.textSub}; line-height: 1.75; font-weight: 400; }
         .p-content p { margin: 0 0 1.2rem 0; }
         .p-content h2, .p-content h3 { color: ${c.text}; margin: 2rem 0 1rem 0; font-weight: 800; letter-spacing: -0.01em; line-height: 1.3; }
@@ -182,7 +184,7 @@ export function PerspectiveReader({ article, allArticles = [], theme, onBack, on
       `}</style>
 
       <div className="reader-layout">
-        <div className="reader-sidebar" style={{ animation: "smoothReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards", willChange: "opacity, transform" }}>
+        <div className="reader-sidebar">
           <button
             onClick={onBack}
             style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "transparent", border: "none", color: c.textMuted, fontFamily: "'Manrope', sans-serif", fontSize: "0.72rem", fontWeight: 700, cursor: "pointer", padding: "0.5rem 0", textTransform: "uppercase", letterSpacing: "0.1em", transition: "color 0.2s", lineHeight: 1 }}
@@ -194,7 +196,7 @@ export function PerspectiveReader({ article, allArticles = [], theme, onBack, on
         </div>
 
         <div className="reader-main">
-          <div style={{ marginBottom: "2.5rem", textAlign: "left", opacity: 0, animation: "smoothReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.1s", willChange: "opacity, transform" }}>
+          <div style={{ marginBottom: "2.5rem", textAlign: "left" }}>
             <span style={{ display: "inline-block", background: c.accentDim, color: c.accent, padding: "0.4rem 1rem", borderRadius: 100, fontFamily: "'Manrope', sans-serif", fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "1rem" }}>
               {article.category}
             </span>
@@ -218,24 +220,23 @@ export function PerspectiveReader({ article, allArticles = [], theme, onBack, on
                <span>|</span>
                <span style={{ display: "flex", alignItems: "center", gap: 6 }}><i className="ri-calendar-line" style={{ fontSize: "0.9rem" }} /> {article.published_date}</span>
                <span>|</span>
-               <span style={{ display: "flex", alignItems: "center", gap: 6 }}><i className="ri-eye-line" style={{ fontSize: "0.9rem" }} /> {article.views} Dilihat</span>
+               <span style={{ display: "flex", alignItems: "center", gap: 6 }}><i className="ri-time-line" style={{ fontSize: "0.9rem" }} /> {calculateReadTime(article.body)} Menit Baca</span>
             </div>
           </div>
 
           {article.image_url && (
-             <div style={{ width: "100%", borderRadius: 16, overflow: "hidden", marginBottom: "1.5rem", border: `1px solid ${c.border}`, opacity: 0, animation: "smoothReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.2s", willChange: "opacity, transform" }}>
+             <div style={{ width: "100%", borderRadius: 16, overflow: "hidden", marginBottom: "1.5rem", border: `1px solid ${c.border}` }}>
                <img src={article.image_url} alt={article.title} style={{ width: "100%", maxHeight: "55vh", objectFit: "cover", display: "block" }} />
              </div>
           )}
 
           <div
             className="p-content"
-            style={{ opacity: 0, animation: "smoothReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.3s", willChange: "opacity, transform" }}
             dangerouslySetInnerHTML={{ __html: formatBody(article.body) }}
           />
 
           {relatedArticles.length > 0 && (
-            <div style={{ marginTop: "3rem", paddingTop: "2rem", borderTop: `1px solid ${c.border}`, opacity: 0, animation: "smoothReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.4s", willChange: "opacity, transform" }}>
+            <div style={{ marginTop: "3rem", paddingTop: "2rem", borderTop: `1px solid ${c.border}` }}>
               <h3 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "1.2rem", color: c.text, fontWeight: 800, marginBottom: "1.5rem", letterSpacing: "-0.01em" }}>
                 Baca Juga
               </h3>
@@ -252,7 +253,7 @@ export function PerspectiveReader({ article, allArticles = [], theme, onBack, on
             </div>
           )}
 
-          <div style={{ marginTop: "3rem", paddingTop: "1.5rem", borderTop: `1px solid ${c.border}`, textAlign: "center", opacity: 0, animation: "smoothReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.5s", willChange: "opacity, transform" }}>
+          <div style={{ marginTop: "3rem", paddingTop: "1.5rem", borderTop: `1px solid ${c.border}`, textAlign: "center" }}>
             <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.2em", color: c.textMuted, textTransform: "uppercase" }}>End of Perspective</span>
           </div>
         </div>
@@ -260,3 +261,4 @@ export function PerspectiveReader({ article, allArticles = [], theme, onBack, on
     </div>
   );
 }
+// --- BATAS PERUBAHAN ---

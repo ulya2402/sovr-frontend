@@ -1,4 +1,4 @@
-// --- AWAL PERUBAHAN FULL FILE: src/AstroWrappers.tsx ---
+// --- AWAL PERUBAHAN: src/AstroWrappers.tsx ---
 import { useState, useEffect } from "react";
 import { navigate } from "astro:transitions/client";
 import { Navbar, Footer } from "./components/Layout";
@@ -16,7 +16,6 @@ function useTheme() {
   });
 
   useEffect(() => {
-    // Sinkronisasi paksa jika terjadi Hydration Mismatch dari Server
     const localTheme = localStorage.getItem('sovr_theme') || 'light';
     if (theme !== localTheme) setThemeState(localTheme);
     
@@ -46,46 +45,22 @@ const forceNav = (tabName: string) => {
   else if (tabName === "Perspectives") navigate("/perspectives");
 };
 
-// --- AWAL PERUBAHAN: src/AstroWrappers.tsx ---
 export function PerspectivesIndexPage({ perspectives }: { perspectives: any[] }) {
   const { theme, setTheme } = useTheme();
   const [pSort, setPSort] = useState("latest");
   const [pCat, setPCat] = useState("Semua");
-  const [liveData, setLiveData] = useState(perspectives);
-  const [displayedPerspectives, setDisplayedPerspectives] = useState(perspectives);
-  const [isAnimating, setIsAnimating] = useState(false);
 
-  useEffect(() => {
-    fetch(`https://backend-sovr.botgampang123.workers.dev/api/perspectives?sort=${pSort}`)
-      .then(res => res.json())
-      .then(data => {
-        if(Array.isArray(data)) setLiveData(data);
-      })
-      .catch(err => console.error("Internal Fetch Error:", err));
-  }, [pSort]);
-
-  useEffect(() => {
-    setIsAnimating(true);
-    const timer = setTimeout(() => {
-      let filtered = [...liveData];
-      
-      if (pCat !== "Semua") {
-        const mappedCat = FMAP[pCat] || pCat.toLowerCase();
-        filtered = filtered.filter(p => p.category?.toLowerCase() === mappedCat);
-      }
-      
-      if (pSort === "latest") {
-        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      } else if (pSort === "top") {
-        filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
-      }
-      
-      setDisplayedPerspectives(filtered);
-      setIsAnimating(false);
-    }, 300);
-    
-    return () => clearTimeout(timer);
-  }, [pCat, pSort, liveData]);
+  // Filter & Sort berjalan murni di sisi client secepat kilat (0 fetch API tambahan)
+  let displayedPerspectives = [...perspectives];
+  if (pCat !== "Semua") {
+    const mappedCat = FMAP[pCat] || pCat.toLowerCase();
+    displayedPerspectives = displayedPerspectives.filter(p => p.category?.toLowerCase() === mappedCat);
+  }
+  if (pSort === "latest") {
+    displayedPerspectives.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  } else if (pSort === "top") {
+    displayedPerspectives.sort((a, b) => (b.views || 0) - (a.views || 0));
+  }
 
   const c = T[theme as keyof typeof T];
 
@@ -98,19 +73,16 @@ export function PerspectivesIndexPage({ perspectives }: { perspectives: any[] })
           .app-container.standard { max-width: 680px; }
           @media (min-width: 1024px) { .app-container.standard { padding-top: 5rem; } }
           
-          .grid-transition {
-            transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+          /* Animasi natural sekelas media besar tanpa delay/flicker */
+          .elegant-fade {
+            animation: elegantFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
           }
-          .grid-hidden {
-            opacity: 0;
-            transform: translateY(15px);
-          }
-          .grid-visible {
-            opacity: 1;
-            transform: translateY(0);
+          @keyframes elegantFadeUp {
+            0% { opacity: 0; transform: translateY(12px); }
+            100% { opacity: 1; transform: translateY(0); }
           }
         `}</style>
-        <div className="app-container standard">
+        <div className="app-container standard elegant-fade">
           <div style={{ paddingTop: "2.5rem", marginBottom: "2.5rem" }}>
             <h1 style={{ fontFamily: "'Manrope', sans-serif", fontSize: "2rem", fontWeight: 800, letterSpacing: "-0.02em", color: c.text }}>Perspectives.</h1>
             <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: "0.85rem", color: c.textSub }}>Membahas teknologi dari sudut pandang manusia</p>
@@ -139,7 +111,7 @@ export function PerspectivesIndexPage({ perspectives }: { perspectives: any[] })
               <button onClick={() => setPSort("top")} style={{ fontFamily: "'Manrope', sans-serif", border: "none", background: pSort === "top" ? c.accent : "transparent", color: pSort === "top" ? c.bg : c.textMuted, fontSize: "0.65rem", fontWeight: 700, padding: "0.4rem 0.8rem", borderRadius: 6, cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", transition: "all 0.2s" }}>Top Readers</button>
             </div>
           </div>
-          <div className={`grid-transition ${isAnimating ? 'grid-hidden' : 'grid-visible'}`} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "2rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "2rem" }}>
             {displayedPerspectives.length === 0 ? (
               <p style={{ color: c.textMuted, gridColumn: "1/-1", textAlign: "center", fontFamily: "'Manrope', sans-serif", fontWeight: 600 }}>Belum ada artikel Perspectives untuk kategori ini.</p>
             ) : (
@@ -157,25 +129,7 @@ export function PerspectivesIndexPage({ perspectives }: { perspectives: any[] })
 
 export function PerspectiveReaderPage({ post, allPosts }: { post: any, allPosts: any[] }) {
   const { theme, setTheme } = useTheme();
-  const [livePost, setLivePost] = useState(post);
-  const [liveAllPosts, setLiveAllPosts] = useState(allPosts);
   const c = T[theme as keyof typeof T];
-
-  useEffect(() => {
-    fetch(`https://backend-sovr.botgampang123.workers.dev/api/perspectives?id=${post.id}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data && !Array.isArray(data)) setLivePost(data);
-      })
-      .catch(err => console.error("Internal Fetch Error:", err));
-
-    fetch("https://backend-sovr.botgampang123.workers.dev/api/perspectives?sort=latest")
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setLiveAllPosts(data);
-      })
-      .catch(err => console.error("Internal Fetch Error:", err));
-  }, [post.id]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: c.bg }}>
@@ -185,12 +139,21 @@ export function PerspectiveReaderPage({ post, allPosts }: { post: any, allPosts:
           .app-container { margin: 0 auto; padding: 4rem 1.5rem 6rem; transition: max-width 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
           .app-container.wide { max-width: 800px; }
           @media (min-width: 1024px) { .app-container.wide { padding-top: 5rem; } }
+          
+          /* Fade pembungkus utama agar smooth saat masuk artikel */
+          .reader-fade-in {
+            animation: fadeIn 0.5s ease forwards;
+          }
+          @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+          }
         `}</style>
-        <div className="app-container wide">
+        <div className="app-container wide reader-fade-in">
           <div style={{ paddingTop: "2rem" }}>
             <PerspectiveReader
-                article={livePost}
-                allArticles={liveAllPosts}
+                article={post}
+                allArticles={allPosts}
                 theme={theme}
                 onBack={() => { navigate('/perspectives'); }}
                 onNavigate={(title: string) => { navigate(`/perspectives/${slugify(title)}`); }}
@@ -205,17 +168,7 @@ export function PerspectiveReaderPage({ post, allPosts }: { post: any, allPosts:
 
 export function VaultPage({ tools }: { tools: any[] }) {
   const { theme, setTheme } = useTheme();
-  const [liveTools, setLiveTools] = useState(tools);
   const c = T[theme as keyof typeof T];
-
-  useEffect(() => {
-    fetch("https://backend-sovr.botgampang123.workers.dev/api/vault")
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setLiveTools(data);
-      })
-      .catch(err => console.error("Internal Fetch Error:", err));
-  }, []);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: c.bg }}>
@@ -226,9 +179,9 @@ export function VaultPage({ tools }: { tools: any[] }) {
           .app-container.ultra { max-width: 1140px; }
           @media (min-width: 1024px) { .app-container.ultra { padding-top: 5rem; } }
         `}</style>
-        <div className="app-container ultra">
+        <div className="app-container ultra" style={{ animation: "elegantFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
           <div style={{ paddingTop: "2rem" }}>
-            <VaultGrid tools={liveTools} theme={theme} />
+            <VaultGrid tools={tools} theme={theme} />
           </div>
         </div>
       </section>
@@ -239,22 +192,7 @@ export function VaultPage({ tools }: { tools: any[] }) {
 
 export function VaultDetailPage({ tool, allTools }: { tool: any, allTools: any[] }) {
   const { theme, setTheme } = useTheme();
-  const [liveTool, setLiveTool] = useState(tool);
-  const [liveAllTools, setLiveAllTools] = useState(allTools);
   const c = T[theme as keyof typeof T];
-
-  useEffect(() => {
-    fetch("https://backend-sovr.botgampang123.workers.dev/api/vault")
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-           setLiveAllTools(data);
-           const updatedTool = data.find(t => slugify(t.name) === slugify(tool.name));
-           if(updatedTool) setLiveTool(updatedTool);
-        }
-      })
-      .catch(err => console.error("Internal Fetch Error:", err));
-  }, [tool.name]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", background: c.bg }}>
@@ -265,9 +203,9 @@ export function VaultDetailPage({ tool, allTools }: { tool: any, allTools: any[]
           .app-container.wide { max-width: 800px; }
           @media (min-width: 1024px) { .app-container.wide { padding-top: 5rem; } }
         `}</style>
-        <div className="app-container wide">
+        <div className="app-container wide" style={{ animation: "fadeIn 0.5s ease forwards" }}>
           <div style={{ paddingTop: "2rem" }}>
-            <VaultDetail tool={liveTool} allTools={liveAllTools} theme={theme} />
+            <VaultDetail tool={tool} allTools={allTools} theme={theme} />
           </div>
         </div>
       </section>
@@ -276,4 +214,3 @@ export function VaultDetailPage({ tool, allTools }: { tool: any, allTools: any[]
   );
 }
 // --- BATAS PERUBAHAN ---
-

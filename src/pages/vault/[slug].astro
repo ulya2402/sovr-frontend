@@ -3,17 +3,18 @@ import Layout from '../../layouts/Layout.astro';
 import { VaultDetailPage } from '../../AstroWrappers.tsx';
 import { slugify } from '../../App.tsx';
 
-export async function getStaticPaths() {
-  const response = await fetch("https://backend-sovr.botgampang123.workers.dev/api/vault");
-  const data = await response.json();
-  return data.map((tool: any) => ({
-    params: { slug: slugify(tool.name) },
-    props: { tool, allTools: data }
-  }));
-}
+const { slug } = Astro.params;
 
-const { tool, allTools } = Astro.props;
+const response = await fetch("https://backend-sovr.botgampang123.workers.dev/api/vault");
+const allTools = await response.json();
+
+const tool = allTools.find((t: any) => slugify(t.name) === slug);
+
+if (!tool) {
+  return Astro.redirect('/404');
+}
 ---
+
 <Layout title={`${tool.name} | SOVR. AI Tools`}>
   <VaultDetailPage tool={tool} allTools={allTools} client:load />
 </Layout>
