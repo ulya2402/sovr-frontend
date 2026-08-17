@@ -1,13 +1,12 @@
 ---
 const { 
-  title = "SOVR. - Insight in Seconds", 
-  description = "Insight cepat seputar AI dan crypto." 
+  title = "SOVR. - Insight in Seconds",
+  description = "Insight cepat seputar AI dan crypto."
 } = Astro.props;
 
 import { ViewTransitions } from 'astro:transitions';
-
 import '../index.css';
-import '../App.css'; 
+import '../App.css';
 
 const isProd = import.meta.env.PROD;
 ---
@@ -37,7 +36,6 @@ const isProd = import.meta.env.PROD;
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-    
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet" />
 
     <ViewTransitions />
@@ -54,9 +52,15 @@ const isProd = import.meta.env.PROD;
   </head>
   <body style="margin: 0; padding: 0;">
     <slot />
-    
+
     {isProd && (
-      <script is:inline src="https://5gvci.com/act/files/tag.min.js?z=11592886" data-cfasync="false" async></script>
+      <script is:inline>
+        window.addEventListener('load', function() {
+          setTimeout(function() {
+            (function(s){s.dataset.zone='11592847',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
+          }, 1200);
+        });
+      </script>
     )}
   </body>
 </html>
